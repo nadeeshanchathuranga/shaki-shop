@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
+use App\Models\PromotionItem;
 
 class ProductController extends Controller
 {
@@ -660,7 +662,7 @@ public function fetchProducts2(Request $request)
         'stock_quantity'    => 'required|integer|min:0',
         'discount'          => 'nullable|numeric|min:0|max:100',
         'supplier_id'       => 'nullable|exists:suppliers,id',
-        'barcode'           => ['nullable','string',\Illuminate\Validation\Rule::unique('products','barcode')->whereNull('deleted_at')],
+        'barcode'           => ['nullable','string', Rule::unique('products','barcode')->whereNull('deleted_at')],
         'image'             => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         'description'       => 'nullable|string',
         'products'                 => 'required|array|min:1',
@@ -672,7 +674,7 @@ public function fetchProducts2(Request $request)
     ]);
 
     try {
-        return \DB::transaction(function () use ($request, $validated) {
+        return DB::transaction(function () use ($request, $validated) {
             $data = $validated;
 
             if ($request->hasFile('image')) {
@@ -695,7 +697,8 @@ public function fetchProducts2(Request $request)
             unset($data['products']);
 
             foreach ($items as $i) {
-                $p = \App\Models\Product::lockForUpdate()->find($i['id']);
+                /** @var array{id: int, quantity: int} $i */
+                $p = Product::lockForUpdate()->find($i['id']);
                 if (!$p || $p->stock_quantity < $i['quantity']) {
                     abort(422, 'Insufficient stock for product ID '.$i['id']);
                 }
@@ -704,11 +707,12 @@ public function fetchProducts2(Request $request)
             $data['is_promotion']   = true;
             $data['total_quantity'] = (int)($data['stock_quantity'] ?? 0);
 
-            $promotion = \App\Models\Product::create($data);
+            $promotion = Product::create($data);
             $promotion->update(['code' => 'PROD-' . $promotion->id]);
 
             foreach ($items as $i) {
-                \App\Models\PromotionItem::create([
+                /** @var array{id: int, quantity: int} $i */
+                PromotionItem::create([
                     'product_id'   => $i['id'],
                     'promotion_id' => $promotion->id,
                     'quantity'     => (int)$i['quantity'],
@@ -716,13 +720,14 @@ public function fetchProducts2(Request $request)
             }
 
             foreach ($items as $i) {
-                $p = \App\Models\Product::lockForUpdate()->find($i['id']);
+                /** @var array{id: int, quantity: int} $i */
+                $p = Product::lockForUpdate()->find($i['id']);
                 $p->stock_quantity  = (int)$p->stock_quantity - (int)$i['quantity'];
                 $p->total_quantity  = (int)($p->total_quantity ?? $p->stock_quantity) - (int)$i['quantity'];
                 if ($p->total_quantity < 0) $p->total_quantity = 0;
                 $p->save();
 
-                \App\Models\StockTransaction::create([
+                StockTransaction::create([
                     'product_id'       => $p->id,
                     'transaction_type' => 'Deducted',
                     'quantity'         => (int)$i['quantity'],

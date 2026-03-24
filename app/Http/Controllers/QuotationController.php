@@ -84,7 +84,7 @@ class QuotationController extends Controller
         $relativePath = Storage::url($path);
 
         // Save the file path and order ID in the database
-        \DB::table('quotations')->insert([
+        DB::table('quotations')->insert([
             'order_id' => $request->input('order_id'),
             'file_path' => $relativePath,
             'created_at' => now(),

@@ -232,10 +232,5 @@ class PosController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
-
-        return response()->json([
-            'message' => 'Customer details saved successfully!',
-            'data' => $customer,
-        ], 201);
     }
 }
