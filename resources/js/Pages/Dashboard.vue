@@ -351,6 +351,26 @@
         </div>
       </Link>
 
+      <Link href="/rental-items" v-if="HasRole(['Admin'])">
+        <div class="dashboard-card bg-[#8B5CF6]">
+          <div class="card-content">
+            <div class="icon-container">
+              <img
+                src="/images/dashboard/products.png"
+                class="icon"
+                alt="dresshub.lk"
+              />
+            </div>
+            <div class="text-container">
+              <p class="title">Rental Items</p>
+              <p class="description">
+                Manage rental inventory with commission tracking for both shop and supplier, all in one place.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Link>
+
 
 
     </div>

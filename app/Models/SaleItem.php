@@ -12,6 +12,7 @@ class SaleItem extends Model
     protected $fillable = [
         'sale_id',
         'product_id',
+        'rental_item_id',
         'quantity',
         'unit_price',
         'total_price',
@@ -28,5 +29,10 @@ class SaleItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id','id');
+    }
+
+    public function rentalItem()
+    {
+        return $this->belongsTo(RentalItem::class, 'rental_item_id','id');
     }
 }
