@@ -33,7 +33,7 @@
               >Add Rental Item</DialogTitle
             >
 
-            <form @submit.prevent="submit">
+            <form @submit.prevent="submit" enctype="multipart/form-data">
               <!-- Modal Form -->
               <div class="mt-6 space-y-4 text-left">
                 <!-- Row: Category & Item Name -->
