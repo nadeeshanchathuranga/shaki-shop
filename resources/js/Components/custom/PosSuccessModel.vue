@@ -397,8 +397,10 @@ const productRows = props.products
                   <span>Balance</span>
                   <span>${(Number(props.balance) || 0).toFixed(2)} LKR</span>
               </div>
-              <div style="font-size:10px; font-style:italic; border-top:1px dashed #000; padding-top:6px; margin-top:4px;">
-                  <span colspan="2">Note: A late fee of Rs. 200.00 per day will be charged for returns beyond the rental period (${props.rentalDateTo || 'agreed date'}).</span>
+              <div style="font-size:9px; font-style:italic; border-top:1px dashed #000; padding-top:6px; margin-top:4px; line-height:1.6; display:flex; flex-direction:column;">
+                  <span style="margin:1px 0; display:block;">★ ගිවිසගත් දිනයට පෙර භාරගත් අයිතමය භාර නොදී සිටීමෙන්, අදාළ දිනය ඉක්මවා ඇති එක් දිනක් සඳහා රු. 200 ක මුදලක් අමතරව අය කෙරේ.</span>
+                  <span style="margin:1px 0; display:block;">★ භාරගත් අයිතමයට යම් හානියක් සිදුවී ඇත්නම්, ඊට අදාළ අලාභය තැන්පතු මුදලින් අය කරගනු ලැබේ.</span>
+                  <span style="margin:1px 0; display:block;">★ අත්තිකාරම් මුදලක් ගෙවා භාරගත් අයිතමය ගනුදෙනුව හදිසියේ අවසන් කර භාරදෙන්නේ නම්, කිසිම හේතුවක් මත අත්තිකාරම් මුදල ආපසු ගෙවනු නොලැබේ.</span>
               </div>
               ` : `
               <div>
