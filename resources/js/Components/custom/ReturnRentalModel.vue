@@ -103,7 +103,7 @@
                   <p class="font-bold text-gray-700 mb-2">Rental Items:</p>
                   <div v-for="item in rentalSaleItems" :key="item.id"
                     class="flex justify-between text-sm py-1 border-b border-gray-200">
-                    <span>{{ item.rental_item?.customer_name || 'Rental Item' }} × {{ item.quantity }}</span>
+                    <span>{{ item.rental_item?.item_name || 'Rental Item' }} × {{ item.quantity }}</span>
                     <span>{{ Number(item.total_price).toFixed(2) }} LKR</span>
                   </div>
                 </div>
@@ -339,7 +339,7 @@ const printReturnReceipt = (data) => {
 
   const itemRows = rentalItems.map(item => `
     <tr>
-      <td>${item.rental_item?.customer_name || 'Rental Item'}</td>
+      <td>${item.rental_item?.item_name || 'Rental Item'}</td>
       <td style="text-align:center;">${item.quantity}</td>
       <td>${Number(item.total_price).toFixed(2)}</td>
     </tr>

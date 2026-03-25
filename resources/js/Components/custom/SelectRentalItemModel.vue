@@ -136,7 +136,7 @@
                       </div>
                       <div class="px-4 py-3 space-y-2">
                         <div class="flex items-start justify-between text-sm font-bold tracking-wide">
-                          <p class="text-justify line-clamp-1" :title="item.customer_name">{{ item.customer_name || "N/A" }}</p>
+                          <p class="text-justify line-clamp-1" :title="item.item_name">{{ item.item_name || "N/A" }}</p>
                           <p class="px-2 py-1 text-white bg-green-700 rounded-full flex-shrink-0">
                             {{ item.rent_price || "0.00" }} LKR
                           </p>
