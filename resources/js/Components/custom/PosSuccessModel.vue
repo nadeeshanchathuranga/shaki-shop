@@ -94,7 +94,11 @@ const props = defineProps({
     totalDiscount: String,
     total: String,
     custom_discount: Number,
-    custom_discount_type: String
+    custom_discount_type: String,
+    rentalDateFrom: String,
+    rentalDateTo: String,
+    advanceAmount: [Number, String],
+    hasRentalItems: Boolean,
 });
 
 const handlePrintReceipt = () => {
@@ -283,7 +287,6 @@ const productRows = props.products
               font-style: italic;
           }
 
-
       </style>
   </head>
   <body>
@@ -292,10 +295,8 @@ const productRows = props.products
    <img src="/images/billlogo.png" style="width: 230px; height: 100px;" />
 
            ${companyInfo?.value?.name ? `<h1>${companyInfo.value.name}</h1>` : ''}
-  ${companyInfo?.value?.address ? `<p>${companyInfo.value.address}</p>` : ''}
-  ${(companyInfo?.value?.phone || companyInfo?.value?.phone2 || companyInfo?.value?.email)
-            ? `<p>${companyInfo.value.phone || ''}  / ${companyInfo.value.phone2 || ''}  ${companyInfo.value.email || ''}</p>`
-            : ''}
+           <p>No 51/1/1,Mahabage road, Ragama</p>
+           <p>0756865900</p>
 
           </div>
 
@@ -375,6 +376,31 @@ const productRows = props.products
                     props.custom_discount_type === 'fixed' ? 'LKR' : ''}
                   </span>
               </div>
+              ${props.hasRentalItems ? `
+              <div>
+                  <span>Rental Period</span>
+                  <span>${props.rentalDateFrom || 'N/A'} to ${props.rentalDateTo || 'N/A'}</span>
+              </div>
+              <div>
+                  <span>Advance Paid</span>
+                  <span>${(Number(props.advanceAmount) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div style="font-weight: bold;">
+                  <span>Amount Due (After Advance)</span>
+                  <span>${(Number(props.total) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div>
+                  <span>Cash</span>
+                  <span>${(Number(props.cash) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div style="font-weight: bold;">
+                  <span>Balance</span>
+                  <span>${(Number(props.balance) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div style="font-size:10px; font-style:italic; border-top:1px dashed #000; padding-top:6px; margin-top:4px;">
+                  <span colspan="2">Note: A late fee of Rs. 200.00 per day will be charged for returns beyond the rental period (${props.rentalDateTo || 'agreed date'}).</span>
+              </div>
+              ` : `
               <div>
                   <span>Total</span>
                   <span>${(Number(props.total) || 0).toFixed(2)} LKR</span>
@@ -387,6 +413,7 @@ const productRows = props.products
                   <span>Balance</span>
                   <span>${(Number(props.balance) || 0).toFixed(2)} LKR</span>
               </div>
+              `}
           </div>
           <div class="footer">
 

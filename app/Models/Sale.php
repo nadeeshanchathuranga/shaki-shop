@@ -21,6 +21,10 @@ class Sale extends Model
         'total_cost',
         'cash',
         'custom_discount',
+        'rental_date_from',
+        'rental_date_to',
+        'advance_amount',
+        'is_rental_returned',
     ];
 
 

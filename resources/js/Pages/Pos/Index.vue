@@ -73,11 +73,26 @@
                 <div class="flex md:w-1/2 w-full p-8 border-4 border-black rounded-3xl">
                     <div class="flex flex-col items-start justify-center w-full md:px-12 px-4">
                         <div class="flex items-center justify-between w-full">
-                            <h2 class="md:text-5xl text-4xl font-bold text-black">Billing Details</h2>
-                            <span class="flex cursor-pointer" @click="isSelectModalOpen = true">
-                                <p class="text-xl text-blue-600 font-bold">User Manual</p>
-                                <img src="/images/selectpsoduct.svg" class="w-6 h-6 ml-2" />
-                            </span>
+                            <h2 class="md:text-3xl text-2xl font-bold text-black">Billing Details</h2>
+                            <div class="flex items-center gap-3">
+                              <!-- User Manual Button -->
+                              <button @click="isSelectModalOpen = true"
+                                  class="flex items-center px-4 py-3 text-base font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm whitespace-nowrap">
+                                  <i class="ri-book-open-line mr-2 text-xl"></i> User Manual
+                              </button>
+                              
+                              <!-- Rental Items Button -->
+                              <button @click="isSelectRentalItemModalOpen = true"
+                                  class="flex items-center px-4 py-3 text-base font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition shadow-sm whitespace-nowrap">
+                                  <i class="ri-shopping-bag-3-line mr-2 text-xl"></i> Rental Items
+                              </button>
+                              
+                              <!-- Return Rental Button -->
+                              <button @click="isReturnRentalModalOpen = true"
+                                  class="flex items-center px-4 py-3 text-base font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition shadow-sm whitespace-nowrap">
+                                  <i class="ri-arrow-go-back-line mr-2 text-xl"></i> Return Rental
+                              </button>
+                            </div>
                         </div>
 
                         <div class="flex items-end justify-between w-full my-5 border-2 border-black rounded-2xl">
@@ -235,18 +250,6 @@
                                 <p class="text-xl">Discount</p>
                                 <p class="text-xl">( {{ totalDiscount }} LKR )</p>
                             </div>
-                            <!-- <div class="flex items-center justify-between w-full px-8 pt-4 pb-4 border-b border-black">
-                <p class="text-xl text-black">Custom Discount</p>
-                <span>
-                  <CurrencyInput
-                    v-model="custom_discount"
-                  />
-                  <span class="ml-2">LKR</span>
-                </span>
-              </div> -->
-
-
-
 
                             <div class="flex items-center justify-between w-full px-8 pt-4 pb-4 border-b border-black">
                                 <p class="text-xl text-black">Custom Discount</p>
@@ -254,19 +257,44 @@
                                     <CurrencyInput v-model="custom_discount" @blur="validateCustomDiscount"
                                         placeholder="Enter value" class=" rounded-md px-2 py-1 text-black text-md" />
                                     <select v-model="custom_discount_type"
-                                        class="ml-2 px-8 border-black rounded-md text-black   py-1 text-md  ">
+                                        class="ml-2 px-8 border-black rounded-md text-black py-1 text-md">
                                         <option value="percent">%</option>
                                         <option value="fixed">Rs</option>
                                     </select>
                                 </span>
                             </div>
 
-
-
-
-
-
-
+                            <!-- Rental-specific fields: Date Range & Advance -->
+                            <div v-if="hasRentalItems" class="w-full px-8 pt-4 pb-4 border-b border-black space-y-4">
+                                <div class="flex items-center space-x-2">
+                                    <span class="inline-block w-3 h-3 rounded-full bg-purple-600"></span>
+                                    <p class="text-lg font-bold text-purple-700">Rental Period & Advance</p>
+                                </div>
+                                <div class="flex items-center justify-between space-x-4">
+                                    <div class="flex flex-col flex-1">
+                                        <label class="text-sm font-semibold text-gray-600 mb-1">From</label>
+                                        <input type="date" v-model="rentalDateFrom"
+                                            class="border border-gray-300 rounded-lg px-4 py-2 text-black focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
+                                    </div>
+                                    <div class="flex flex-col flex-1">
+                                        <label class="text-sm font-semibold text-gray-600 mb-1">To</label>
+                                        <input type="date" v-model="rentalDateTo"
+                                            class="border border-gray-300 rounded-lg px-4 py-2 text-black focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-xl text-black">Advance Amount</p>
+                                    <span class="flex items-center">
+                                        <CurrencyInput v-model="advanceAmount"
+                                            placeholder="Enter advance" class="rounded-md px-2 py-1 text-black text-md" />
+                                        <span class="ml-2">LKR</span>
+                                    </span>
+                                </div>
+                                <div v-if="advanceAmount > 0" class="flex items-center justify-between bg-purple-50 rounded-lg px-4 py-2">
+                                    <p class="text-lg font-semibold text-purple-700">Remaining After Advance</p>
+                                    <p class="text-lg font-bold text-purple-800">{{ remainingAfterAdvance }} LKR</p>
+                                </div>
+                            </div>
 
                             <div class="flex items-center justify-between w-full px-8 pt-4 pb-4 border-b border-black">
                                 <p class="text-xl text-black">Cash</p>
@@ -353,11 +381,20 @@
         :employee="employee" :cashier="loggedInUser" :customer="customer" :orderid="orderid" :cash="cash"
         :balance="balance" :subTotal="subtotal" :totalDiscount="totalDiscount" :total="total"
         :custom_discount_type="custom_discount_type"
-        :custom_discount="custom_discount" />
+        :custom_discount="custom_discount"
+        :rentalDateFrom="rentalDateFrom"
+        :rentalDateTo="rentalDateTo"
+        :advanceAmount="advanceAmount"
+        :hasRentalItems="hasRentalItems" />
     <AlertModel v-model:open="isAlertModalOpen" :message="message" />
 
     <SelectProductModel v-model:open="isSelectModalOpen" :allcategories="allcategories" :colors="colors" :sizes="sizes"
         @selected-products="handleSelectedProducts" />
+
+    <SelectRentalItemModel v-model:open="isSelectRentalItemModalOpen" :allcategories="allcategories" :colors="colors"
+        @selected-rental-items="handleSelectedRentalItems" />
+
+    <ReturnRentalModel v-model:open="isReturnRentalModalOpen" />
     <Footer />
 </template>
 <script setup>
@@ -373,6 +410,8 @@ import { Link } from "@inertiajs/vue3";
 import axios from "axios";
 import CurrencyInput from "@/Components/custom/CurrencyInput.vue";
 import SelectProductModel from "@/Components/custom/SelectProductModel.vue";
+import SelectRentalItemModel from "@/Components/custom/SelectRentalItemModel.vue";
+import ReturnRentalModel from "@/Components/custom/ReturnRentalModel.vue";
 import ProductAutoComplete from "@/Components/custom/ProductAutoComplete.vue";
 import { generateOrderId } from "@/Utils/Other.js";
 
@@ -386,7 +425,12 @@ const appliedCoupon = ref(null);
 const cash = ref(0);
 const custom_discount = ref(0);
 const isSelectModalOpen = ref(false);
+const isSelectRentalItemModalOpen = ref(false);
+const isReturnRentalModalOpen = ref(false);
 const custom_discount_type = ref('percent');
+const rentalDateFrom = ref('');
+const rentalDateTo = ref('');
+const advanceAmount = ref(0);
 const orderid = computed(() => generateOrderId());
 
 
@@ -471,6 +515,26 @@ const submitOrder = async () => {
         message.value = "Cash is not enough";
         return;
     }
+
+    // Validation for rental items: require dates and advance
+    if (hasRentalItems.value) {
+        if (!rentalDateFrom.value || !rentalDateTo.value) {
+            isAlertModalOpen.value = true;
+            message.value = "Please select both 'From' and 'To' dates for the rental period.";
+            return;
+        }
+        if (new Date(rentalDateTo.value) < new Date(rentalDateFrom.value)) {
+            isAlertModalOpen.value = true;
+            message.value = "'To' date cannot be before 'From' date.";
+            return;
+        }
+        if (!advanceAmount.value || parseFloat(advanceAmount.value) <= 0) {
+            isAlertModalOpen.value = true;
+            message.value = "Please enter the advance amount for the rental items.";
+            return;
+        }
+    }
+
     try {
         const response = await axios.post("/pos/submit", {
             customer: customer.value,
@@ -481,6 +545,9 @@ const submitOrder = async () => {
             orderid: orderid.value,
             cash: cash.value,
             custom_discount: custom_discount.value,
+            rental_date_from: rentalDateFrom.value || null,
+            rental_date_to: rentalDateTo.value || null,
+            advance_amount: advanceAmount.value || 0,
         });
         isSuccessModalOpen.value = true;
         console.log(response.data); // Handle success
@@ -532,6 +599,10 @@ const validateCustomDiscount = () => {
     }
 };
 
+const hasRentalItems = computed(() => {
+    return products.value.some((item) => item.is_rental === true);
+});
+
 const total = computed(() => {
     const subtotalValue = parseFloat(subtotal.value) || 0;
     const discountValue = parseFloat(totalDiscount.value) || 0;
@@ -545,7 +616,32 @@ const total = computed(() => {
         customValue = customDiscount;
     }
 
-    return (subtotalValue - discountValue - customValue).toFixed(2);
+    let totalBeforeAdvance = subtotalValue - discountValue - customValue;
+
+    // Subtract advance amount if rental items are present
+    const advance = parseFloat(advanceAmount.value) || 0;
+    if (hasRentalItems.value && advance > 0) {
+        totalBeforeAdvance = totalBeforeAdvance - advance;
+    }
+
+    return totalBeforeAdvance.toFixed(2);
+});
+
+const remainingAfterAdvance = computed(() => {
+    const subtotalValue = parseFloat(subtotal.value) || 0;
+    const discountValue = parseFloat(totalDiscount.value) || 0;
+    const customDiscount = parseFloat(custom_discount.value) || 0;
+
+    let customValue = 0;
+    if (custom_discount_type.value === 'percent') {
+        customValue = (subtotalValue * customDiscount) / 100;
+    } else if (custom_discount_type.value === 'fixed') {
+        customValue = customDiscount;
+    }
+
+    const totalBeforeAdvance = subtotalValue - discountValue - customValue;
+    const advance = parseFloat(advanceAmount.value) || 0;
+    return (totalBeforeAdvance - advance).toFixed(2);
 });
 
 const balance = computed(() => {
@@ -708,6 +804,41 @@ const handleSelectedProducts = (selectedProducts) => {
                 ...fetchedProduct,
                 quantity: 1,
                 apply_discount: false, // Default additional attribute
+            });
+        }
+    });
+};
+
+const handleSelectedRentalItems = (selectedRentalItems) => {
+    selectedRentalItems.forEach((fetchedRentalItem) => {
+        // Map rental item attributes to match what POS expects for a product
+        const posFormattedItem = {
+            id: 'rental_' + fetchedRentalItem.id, // Prefix ID to avoid collision with normal products
+            original_rental_id: fetchedRentalItem.id,
+            name: fetchedRentalItem.customer_name + ' (Rental)',
+            selling_price: fetchedRentalItem.rent_price,
+            image: fetchedRentalItem.image,
+            is_rental: true, // Flag to identify it during checkout
+            stock_quantity: fetchedRentalItem.rental_quantity // For POS validation limits
+        };
+
+        const existingProduct = products.value.find(
+            (item) => item.id === posFormattedItem.id
+        );
+
+        if (existingProduct) {
+            // Check if we hit the rental quantity limit
+            if (existingProduct.quantity < posFormattedItem.stock_quantity) {
+                existingProduct.quantity += 1;
+            } else {
+                 isAlertModalOpen.value = true;
+                 message.value = `Cannot exceed available rental quantity (${posFormattedItem.stock_quantity}) for this item.`;
+            }
+        } else {
+            products.value.push({
+                ...posFormattedItem,
+                quantity: 1,
+                apply_discount: false,
             });
         }
     });

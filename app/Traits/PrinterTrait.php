@@ -8,7 +8,7 @@ trait PrinterTrait
      * Send a raw ESC/POS command to the printer to open the cash drawer.
      *
      * @param string $printerName
-     * @return bool|string
+     * @return void
      */
     
     // public function openCashDrawer()

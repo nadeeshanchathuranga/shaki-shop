@@ -19,6 +19,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\StockTransactionController;
 use App\Http\Controllers\TransactionHistoryController;
 use App\Http\Controllers\ManualPosController;
+use App\Http\Controllers\RentalItemController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -101,6 +102,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('/quotation', QuotationController::class);
     Route::post('/api/save-quotation', [QuotationController::class, 'saveQuotationPdf']);
+
+    Route::resource('rental-items', RentalItemController::class);
+    Route::post('/api/rental-items', [RentalItemController::class, 'apiIndex'])->name('api.rental-items');
+    Route::post('/api/rental-sales', [PosController::class, 'getRentalSales'])->name('api.rental-sales');
+    Route::post('/pos/rental-return', [PosController::class, 'submitRentalReturn'])->name('pos.rental-return');
 
 
 
