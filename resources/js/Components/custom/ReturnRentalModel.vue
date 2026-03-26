@@ -35,8 +35,9 @@
                       <tr>
                         <th class="px-4 py-3 text-sm font-bold text-gray-700">Order ID</th>
                         <th class="px-4 py-3 text-sm font-bold text-gray-700">Customer</th>
+                        <th class="px-4 py-3 text-sm font-bold text-gray-700">Type</th>
                         <th class="px-4 py-3 text-sm font-bold text-gray-700">Rental Period</th>
-                        <th class="px-4 py-3 text-sm font-bold text-gray-700">Advance</th>
+                        <th class="px-4 py-3 text-sm font-bold text-gray-700">Deposit</th>
                         <th class="px-4 py-3 text-sm font-bold text-gray-700">Total</th>
                         <th class="px-4 py-3 text-sm font-bold text-gray-700">Action</th>
                       </tr>
@@ -46,8 +47,13 @@
                         class="border-b hover:bg-gray-50 transition cursor-pointer">
                         <td class="px-4 py-3 text-sm font-mono font-bold">{{ sale.order_id }}</td>
                         <td class="px-4 py-3 text-sm">{{ sale.customer?.name || 'Walk-in' }}</td>
+                        <td class="px-4 py-3 text-sm">
+                          <span :class="sale.rental_type === 'rent_now' ? 'bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold' : 'bg-sky-100 text-sky-700 px-2 py-1 rounded-full text-xs font-bold'">
+                            {{ sale.rental_type === 'rent_now' ? 'Rent Now' : 'Rent Later' }}
+                          </span>
+                        </td>
                         <td class="px-4 py-3 text-sm">{{ sale.rental_date_from }} to {{ sale.rental_date_to }}</td>
-                        <td class="px-4 py-3 text-sm">{{ Number(sale.advance_amount).toFixed(2) }} LKR</td>
+                        <td class="px-4 py-3 text-sm">{{ Number(sale.deposit).toFixed(2) }} LKR</td>
                         <td class="px-4 py-3 text-sm">{{ Number(sale.total_amount).toFixed(2) }} LKR</td>
                         <td class="px-4 py-3">
                           <button @click="selectSale(sale)"
@@ -150,6 +156,50 @@
 
                 <div class="border-t pt-3 space-y-2">
                   <div class="flex justify-between text-xl font-bold">
+                    <span>Deposit Paid:</span>
+                    <span>{{ Number(selectedSale.deposit).toFixed(2) }} LKR</span>
+                  </div>
+                </div>
+
+                <!-- Damage Amount Input -->
+                <div class="border-t pt-3 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-lg">Damage Amount:</span>
+                    <input v-model.number="damageAmount" type="number" min="0" step="0.01"
+                      class="w-48 px-4 py-2 text-lg border-2 border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-red-500" />
+                  </div>
+                </div>
+
+                <!-- Deposit Deduction Summary -->
+                <div class="border-t pt-3 space-y-2">
+                  <p class="font-bold text-gray-700 mb-2">Deposit Deduction Summary:</p>
+                  <div v-if="lateDays > 0" class="flex justify-between text-red-700">
+                    <span>Late Fee (Rs. 200 × {{ lateDays }}):</span>
+                    <span class="font-bold">{{ lateFee.toFixed(2) }} LKR</span>
+                  </div>
+                  <div v-else class="flex justify-between text-green-700">
+                    <span>Late Fee:</span>
+                    <span class="font-bold">None (On time)</span>
+                  </div>
+                  <div v-if="damageAmount > 0" class="flex justify-between text-red-700">
+                    <span>Damage Deduction:</span>
+                    <span class="font-bold">{{ Number(damageAmount).toFixed(2) }} LKR</span>
+                  </div>
+                  <div class="flex justify-between font-bold">
+                    <span>Total Deductions:</span>
+                    <span>{{ totalDeductions.toFixed(2) }} LKR</span>
+                  </div>
+                  <div class="flex justify-between font-bold text-xl" :class="depositRefund >= 0 ? 'text-green-700' : 'text-red-700'">
+                    <span>{{ depositRefund >= 0 ? 'Deposit Refund:' : 'Customer Must Pay:' }}</span>
+                    <span>{{ Math.abs(depositRefund).toFixed(2) }} LKR</span>
+                  </div>
+                  <div v-if="depositRefund < 0" class="bg-red-50 border border-red-300 rounded-lg p-3">
+                    <p class="text-red-700 font-bold text-center">⚠ Deposit is not enough! Customer must pay {{ Math.abs(depositRefund).toFixed(2) }} LKR</p>
+                  </div>
+                </div>
+
+                <div class="border-t pt-3 space-y-2">
+                  <div class="flex justify-between text-xl font-bold">
                     <span>Total Amount to Pay:</span>
                     <span>{{ totalToPay.toFixed(2) }} LKR</span>
                   </div>
@@ -236,6 +286,7 @@ const selectedSale = ref(null);
 const cashReceived = ref(0);
 const paymentMethod = ref("cash");
 const processing = ref(false);
+const damageAmount = ref(0);
 
 const emit = defineEmits(["update:open"]);
 
@@ -270,7 +321,21 @@ const lateDays = computed(() => {
 
 const lateFee = computed(() => lateDays.value * 200);
 
-const totalToPay = computed(() => amountAfterAdvance.value + lateFee.value);
+const totalDeductions = computed(() => lateFee.value + (Number(damageAmount.value) || 0));
+
+const depositRefund = computed(() => {
+  if (!selectedSale.value) return 0;
+  const deposit = Number(selectedSale.value.deposit) || 0;
+  return deposit - totalDeductions.value;
+});
+
+const totalToPay = computed(() => {
+  // If deposit doesn't cover deductions, customer must pay the deficit
+  if (depositRefund.value < 0) {
+    return Math.abs(depositRefund.value);
+  }
+  return 0;
+});
 
 const returnBalance = computed(() => (cashReceived.value || 0) - totalToPay.value);
 
@@ -279,6 +344,7 @@ const closeModal = () => {
   searchQuery.value = "";
   cashReceived.value = 0;
   paymentMethod.value = "cash";
+  damageAmount.value = 0;
   emit("update:open", false);
 };
 
@@ -286,6 +352,7 @@ const selectSale = (sale) => {
   selectedSale.value = sale;
   cashReceived.value = 0;
   paymentMethod.value = "cash";
+  damageAmount.value = 0;
 };
 
 const fetchSales = async (url = "/api/rental-sales") => {
@@ -315,6 +382,7 @@ const confirmReturn = async () => {
       sale_id: selectedSale.value.id,
       cash_received: cashReceived.value,
       payment_method: paymentMethod.value,
+      damage_amount: damageAmount.value || 0,
     });
 
     // Print the final return receipt
@@ -439,8 +507,27 @@ const printReturnReceipt = (data) => {
                   <span>None (Returned on time)</span>
               </div>
               `}
+              ${Number(data.damage_amount) > 0 ? `
+              <div>
+                  <span>Damage Deduction</span>
+                  <span>${Number(data.damage_amount).toFixed(2)} LKR</span>
+              </div>
+              ` : ''}
+              <div>
+                  <span>Deposit Paid</span>
+                  <span>${Number(data.deposit).toFixed(2)} LKR</span>
+              </div>
+              <div>
+                  <span>Total Deductions (Late + Damage)</span>
+                  <span>${Number(data.total_deductions).toFixed(2)} LKR</span>
+              </div>
               <div style="font-weight:bold; font-size:14px;">
-                  <span>Total Amount Paid</span>
+                  <span>${Number(data.deposit_refund) >= 0 ? 'Deposit Refund' : 'Customer Must Pay'}</span>
+                  <span>${Math.abs(Number(data.deposit_refund)).toFixed(2)} LKR</span>
+              </div>
+              ${Number(data.customer_deficit) > 0 ? `
+              <div style="font-weight:bold; font-size:14px;">
+                  <span>Total Amount Paid by Customer</span>
                   <span>${Number(data.total_to_pay).toFixed(2)} LKR</span>
               </div>
               <div>
@@ -455,6 +542,7 @@ const printReturnReceipt = (data) => {
                   <span>Balance</span>
                   <span>${Number(data.balance).toFixed(2)} LKR</span>
               </div>
+              ` : ''}
           </div>
 
           <div class="footer">

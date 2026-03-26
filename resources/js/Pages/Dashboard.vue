@@ -371,6 +371,26 @@
         </div>
       </Link>
 
+      <Link href="/rental-summary" v-if="HasRole(['Admin'])">
+        <div class="dashboard-card bg-[#0EA5E9]">
+          <div class="card-content">
+            <div class="icon-container">
+              <img
+                src="/images/dashboard/report.png"
+                class="icon"
+                alt="dresshub.lk"
+              />
+            </div>
+            <div class="text-container">
+              <p class="title">Rental Summary</p>
+              <p class="description">
+                View and track booked, rented, and returned items all in one place for efficient rental management.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Link>
+
 
 
     </div>

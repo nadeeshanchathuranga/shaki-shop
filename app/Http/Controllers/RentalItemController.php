@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Color;
 use App\Models\RentalItem;
+use App\Models\RentalBooking;
+use App\Models\Sale;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -217,5 +219,134 @@ class RentalItemController extends Controller
         $rentalItem->delete();
 
         return redirect()->route('rental-items.index')->banner('Rental item deleted successfully.');
+    }
+
+    /**
+     * Display the Rental Summary page with booked, rented, and returned items.
+     */
+    public function rentalSummary(Request $request)
+    {
+        if (!Gate::allows('hasRole', ['Admin', 'Cashier'])) {
+            abort(403, 'Unauthorized');
+        }
+
+        $search = $request->input('search', '');
+
+        // Booked items (status = 'booked')
+        $bookedQuery = RentalBooking::where('status', 'booked')
+            ->with('rentalItem');
+        if ($search) {
+            $bookedQuery->where(function ($q) use ($search) {
+                $q->where('booking_order_id', 'like', '%' . $search . '%')
+                  ->orWhere('customer_name', 'like', '%' . $search . '%');
+            });
+        }
+        $bookedItems = $bookedQuery->orderBy('created_at', 'desc')->paginate(10, ['*'], 'booked_page');
+
+        // Active rentals (rental sales that haven't been returned)
+        $rentedQuery = Sale::whereNotNull('rental_type')
+            ->where('is_rental_returned', false)
+            ->with(['saleItems.rentalItem', 'customer']);
+        if ($search) {
+            $rentedQuery->where('order_id', 'like', '%' . $search . '%');
+        }
+        $rentedItems = $rentedQuery->orderBy('created_at', 'desc')->paginate(10, ['*'], 'rented_page');
+
+        // Returned rentals
+        $returnedQuery = Sale::whereNotNull('rental_type')
+            ->where('is_rental_returned', true)
+            ->with(['saleItems.rentalItem', 'customer']);
+        if ($search) {
+            $returnedQuery->where('order_id', 'like', '%' . $search . '%');
+        }
+        $returnedItems = $returnedQuery->orderBy('updated_at', 'desc')->paginate(10, ['*'], 'returned_page');
+
+        return Inertia::render('RentalSummary/Index', [
+            'bookedItems' => $bookedItems,
+            'rentedItems' => $rentedItems,
+            'returnedItems' => $returnedItems,
+            'search' => $search,
+        ]);
+    }
+
+    /**
+     * Clear all active rental items.
+     */
+    public function clearActiveRentals(Request $request)
+    {
+        if (!Gate::allows('hasRole', ['Admin', 'Cashier'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $deletedCount = Sale::whereNotNull('rental_type')
+                ->where('is_rental_returned', false)
+                ->delete();
+
+            return response()->json([
+                'success' => true,
+                'deleted_count' => $deletedCount,
+                'message' => "Successfully cleared {$deletedCount} active rental items."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Clear all returned rental items.
+     */
+    public function clearReturnedRentals(Request $request)
+    {
+        if (!Gate::allows('hasRole', ['Admin', 'Cashier'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $deletedCount = Sale::whereNotNull('rental_type')
+                ->where('is_rental_returned', true)
+                ->delete();
+
+            return response()->json([
+                'success' => true,
+                'deleted_count' => $deletedCount,
+                'message' => "Successfully cleared {$deletedCount} returned rental items."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel a booking.
+     */
+    public function cancelBooking($bookingId)
+    {
+        if (!Gate::allows('hasRole', ['Admin', 'Cashier'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $booking = RentalBooking::findOrFail($bookingId);
+            
+            // Delete the booking
+            $booking->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking cancelled successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

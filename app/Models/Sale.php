@@ -24,10 +24,20 @@ class Sale extends Model
         'rental_date_from',
         'rental_date_to',
         'advance_amount',
+        'deposit',
+        'rental_type',
+        'booking_id',
         'is_rental_returned',
+        'late_fee',
+        'late_days',
+        'damage_amount',
+        'deposit_refund',
     ];
 
-
+    public function booking()
+    {
+        return $this->belongsTo(\App\Models\RentalBooking::class, 'booking_id', 'id');
+    }
 
 
     public function sale()
