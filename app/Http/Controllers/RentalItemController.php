@@ -268,4 +268,85 @@ class RentalItemController extends Controller
             'search' => $search,
         ]);
     }
+
+    /**
+     * Clear all active rental items.
+     */
+    public function clearActiveRentals(Request $request)
+    {
+        if (!Gate::allows('hasRole', ['Admin', 'Cashier'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $deletedCount = Sale::whereNotNull('rental_type')
+                ->where('is_rental_returned', false)
+                ->delete();
+
+            return response()->json([
+                'success' => true,
+                'deleted_count' => $deletedCount,
+                'message' => "Successfully cleared {$deletedCount} active rental items."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Clear all returned rental items.
+     */
+    public function clearReturnedRentals(Request $request)
+    {
+        if (!Gate::allows('hasRole', ['Admin', 'Cashier'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $deletedCount = Sale::whereNotNull('rental_type')
+                ->where('is_rental_returned', true)
+                ->delete();
+
+            return response()->json([
+                'success' => true,
+                'deleted_count' => $deletedCount,
+                'message' => "Successfully cleared {$deletedCount} returned rental items."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel a booking.
+     */
+    public function cancelBooking($bookingId)
+    {
+        if (!Gate::allows('hasRole', ['Admin', 'Cashier'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $booking = RentalBooking::findOrFail($bookingId);
+            
+            // Delete the booking
+            $booking->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking cancelled successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
