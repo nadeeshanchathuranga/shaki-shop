@@ -815,7 +815,7 @@ const handleSelectedRentalItems = (selectedRentalItems) => {
         const posFormattedItem = {
             id: 'rental_' + fetchedRentalItem.id, // Prefix ID to avoid collision with normal products
             original_rental_id: fetchedRentalItem.id,
-            name: fetchedRentalItem.customer_name + ' (Rental)',
+            name: fetchedRentalItem.item_name + ' (Rental)',
             selling_price: fetchedRentalItem.rent_price,
             image: fetchedRentalItem.image,
             is_rental: true, // Flag to identify it during checkout

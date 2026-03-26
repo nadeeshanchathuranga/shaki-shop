@@ -103,7 +103,7 @@
                   <p class="font-bold text-gray-700 mb-2">Rental Items:</p>
                   <div v-for="item in rentalSaleItems" :key="item.id"
                     class="flex justify-between text-sm py-1 border-b border-gray-200">
-                    <span>{{ item.rental_item?.customer_name || 'Rental Item' }} × {{ item.quantity }}</span>
+                    <span>{{ item.rental_item?.item_name || 'Rental Item' }} × {{ item.quantity }}</span>
                     <span>{{ Number(item.total_price).toFixed(2) }} LKR</span>
                   </div>
                 </div>
@@ -339,7 +339,7 @@ const printReturnReceipt = (data) => {
 
   const itemRows = rentalItems.map(item => `
     <tr>
-      <td>${item.rental_item?.customer_name || 'Rental Item'}</td>
+      <td>${item.rental_item?.item_name || 'Rental Item'}</td>
       <td style="text-align:center;">${item.quantity}</td>
       <td>${Number(item.total_price).toFixed(2)}</td>
     </tr>
@@ -461,6 +461,11 @@ const printReturnReceipt = (data) => {
               <p>THANK YOU COME AGAIN</p>
               <p style="font-weight: bold;">Powered by JAAN Network Ltd.</p>
               <p>${new Date().toLocaleTimeString()}</p>
+              <div style="font-size:9px; font-style:italic; border-top:1px dashed #000; padding-top:6px; margin-top:8px; line-height:1.6; display:flex; flex-direction:column; text-align:left;">
+                  <span style="margin:1px 0; display:block;">★ ගිවිසගත් දිනයට පෙර භාරගත් අයිතමය භාර නොදී සිටීමෙන්, අදාළ දිනය ඉක්මවා ඇති එක් දිනක් සඳහා රු. 200 ක මුදලක් අමතරව අය කෙරේ.</span>
+                  <span style="margin:1px 0; display:block;">★ භාරගත් අයිතමයට යම් හානියක් සිදුවී ඇත්නම්, ඊට අදාළ අලාභය තැන්පතු මුදලින් අය කරගනු ලැබේ.</span>
+                  <span style="margin:1px 0; display:block;">★ අත්තිකාරම් මුදලක් ගෙවා භාරගත් අයිතමය ගනුදෙනුව හදිසියේ අවසන් කර භාරදෙන්නේ නම්, කිසිම හේතුවක් මත අත්තිකාරම් මුදල ආපසු ගෙවනු නොලැබේ.</span>
+              </div>
           </div>
       </div>
   </body>
