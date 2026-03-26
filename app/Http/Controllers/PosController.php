@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\RentalItem;
+use App\Models\RentalBooking;
 use App\Models\Size;
 use App\Models\StockTransaction;
 use App\Models\Employee;
@@ -173,8 +174,18 @@ class PosController extends Controller
                 'rental_date_from' => $request->input('rental_date_from'),
                 'rental_date_to' => $request->input('rental_date_to'),
                 'advance_amount' => $request->input('advance_amount', 0),
-
+                'deposit' => $request->input('deposit', 0),
+                'rental_type' => $request->input('rental_type'),
+                'booking_id' => $request->input('booking_id'),
             ]);
+
+            // If this sale is from a booked item, mark the booking as completed
+            if ($request->input('booking_id')) {
+                $booking = RentalBooking::find($request->input('booking_id'));
+                if ($booking) {
+                    $booking->update(['status' => 'completed']);
+                }
+            }
 
             foreach ($products as $product) {
                 // Check if this is a rental item
@@ -280,7 +291,7 @@ class PosController extends Controller
         }
 
         $query = Sale::whereNotNull('rental_date_from')
-            ->where('advance_amount', '>', 0)
+            ->whereNotNull('rental_type')
             ->where('is_rental_returned', false)
             ->with(['saleItems.rentalItem', 'customer']);
 
@@ -308,6 +319,7 @@ class PosController extends Controller
         $saleId = $request->input('sale_id');
         $cashReceived = $request->input('cash_received', 0);
         $paymentMethod = $request->input('payment_method', 'cash');
+        $damageAmount = $request->input('damage_amount', 0);
 
         $sale = Sale::with(['saleItems.rentalItem', 'customer'])->findOrFail($saleId);
 
@@ -322,10 +334,20 @@ class PosController extends Controller
             $lateFee = $lateDays * 200;
         }
 
+        // Deposit-based deductions
+        $deposit = floatval($sale->deposit);
+        $totalDeductions = $lateFee + $damageAmount;
+        $depositRefund = $deposit - $totalDeductions;
+        // If depositRefund is negative, customer must pay the deficit
+        $customerDeficit = $depositRefund < 0 ? abs($depositRefund) : 0;
+
         // Calculate the amount due after advance (from original sale total)
         $originalTotal = $sale->total_amount - $sale->discount - ($sale->custom_discount ?? 0);
         $amountAfterAdvance = $originalTotal - $sale->advance_amount;
-        $totalToPay = $amountAfterAdvance + $lateFee;
+
+        // Total customer needs to pay = remaining sale amount + any deposit deficit
+        // (if deposit covers deductions, customer doesn't pay extra)
+        $totalToPay = $customerDeficit;
         $balance = $cashReceived - $totalToPay;
 
         // Restore rental quantities (items returned)
@@ -335,17 +357,14 @@ class PosController extends Controller
             }
         }
 
-        // Mark the sale as returned and update financial totals if there are late fees
+        // Mark the sale as returned and save fee data
         $sale->is_rental_returned = true;
+        $sale->late_fee = $lateFee;
+        $sale->late_days = $lateDays;
+        $sale->damage_amount = $damageAmount;
+        $sale->deposit_refund = $depositRefund;
         if ($paymentMethod) {
             $sale->payment_method = $paymentMethod;
-        }
-        if ($lateFee > 0) {
-            $sale->total_amount += $lateFee;
-            $sale->cash += $totalToPay;
-        } else {
-            // Just add the remaining balance (if any) to cash
-            $sale->cash += $totalToPay;
         }
         $sale->save();
 
@@ -354,11 +373,115 @@ class PosController extends Controller
             'sale' => $sale,
             'late_days' => $lateDays,
             'late_fee' => $lateFee,
+            'damage_amount' => $damageAmount,
+            'deposit' => $deposit,
+            'total_deductions' => $totalDeductions,
+            'deposit_refund' => $depositRefund,
+            'customer_deficit' => $customerDeficit,
             'amount_after_advance' => $amountAfterAdvance,
             'total_to_pay' => $totalToPay,
             'cash_received' => $cashReceived,
             'payment_method' => $sale->payment_method,
             'balance' => $balance,
+        ]);
+    }
+
+    /**
+     * Store a rental booking (Rent Later).
+     */
+    public function storeBooking(Request $request)
+    {
+        if (!Gate::allows('hasRole', ['Admin', 'Cashier'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'items' => 'required|array|min:1',
+            'items.*.rental_item_id' => 'required|exists:rental_items,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'rental_date_from' => 'required|date',
+            'rental_date_to' => 'required|date|after_or_equal:rental_date_from',
+            'advance_amount' => 'required|numeric|min:0',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $bookings = [];
+            $bookingOrderId = 'BK-' . strtoupper(substr(md5(uniqid()), 0, 8));
+
+            foreach ($validated['items'] as $item) {
+                $rentalItem = RentalItem::find($item['rental_item_id']);
+
+                if (!$rentalItem || $rentalItem->rental_quantity < $item['quantity']) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Insufficient availability for rental item.',
+                    ], 423);
+                }
+
+                $booking = RentalBooking::create([
+                    'booking_order_id' => $bookingOrderId,
+                    'customer_name' => $validated['customer_name'],
+                    'rental_item_id' => $item['rental_item_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'total_price' => $item['quantity'] * $item['unit_price'],
+                    'rental_date_from' => $validated['rental_date_from'],
+                    'rental_date_to' => $validated['rental_date_to'],
+                    'advance_amount' => $validated['advance_amount'],
+                    'status' => 'booked',
+                ]);
+
+                // Deduct rental quantity
+                $rentalItem->decrement('rental_quantity', $item['quantity']);
+
+                $bookings[] = $booking->load('rentalItem');
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Booking created successfully!',
+                'booking_order_id' => $bookingOrderId,
+                'bookings' => $bookings,
+                'customer_name' => $validated['customer_name'],
+                'rental_date_from' => $validated['rental_date_from'],
+                'rental_date_to' => $validated['rental_date_to'],
+                'advance_amount' => $validated['advance_amount'],
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Error creating booking: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'An error occurred while creating the booking.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Fetch booked items for the Booked Items modal.
+     */
+    public function getBookedItems(Request $request)
+    {
+        if (!Gate::allows('hasRole', ['Admin', 'Cashier'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $query = RentalBooking::where('status', 'booked')
+            ->with('rentalItem');
+
+        if ($request->has('search') && $request->search != '') {
+            $query->where('booking_order_id', 'like', '%' . $request->search . '%');
+        }
+
+        $bookings = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        return response()->json([
+            'bookings' => $bookings
         ]);
     }
 }

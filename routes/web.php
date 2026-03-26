@@ -105,8 +105,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('rental-items', RentalItemController::class);
     Route::post('/api/rental-items', [RentalItemController::class, 'apiIndex'])->name('api.rental-items');
+    Route::get('/rental-summary', [RentalItemController::class, 'rentalSummary'])->name('rental-summary');
     Route::post('/api/rental-sales', [PosController::class, 'getRentalSales'])->name('api.rental-sales');
     Route::post('/pos/rental-return', [PosController::class, 'submitRentalReturn'])->name('pos.rental-return');
+    Route::post('/api/rental-bookings', [PosController::class, 'storeBooking'])->name('api.rental-bookings.store');
+    Route::post('/api/booked-items', [PosController::class, 'getBookedItems'])->name('api.booked-items');
 
 
 

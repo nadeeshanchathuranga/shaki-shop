@@ -98,6 +98,9 @@ const props = defineProps({
     rentalDateFrom: String,
     rentalDateTo: String,
     advanceAmount: [Number, String],
+    depositAmount: [Number, String],
+    rentalMode: String,
+    isBookedImport: Boolean,
     hasRentalItems: Boolean,
 });
 
@@ -376,17 +379,55 @@ const productRows = props.products
                     props.custom_discount_type === 'fixed' ? 'LKR' : ''}
                   </span>
               </div>
-              ${props.hasRentalItems ? `
+              ${props.hasRentalItems && props.rentalMode === 'rent_now' ? `
               <div>
                   <span>Rental Period</span>
                   <span>${props.rentalDateFrom || 'N/A'} to ${props.rentalDateTo || 'N/A'}</span>
               </div>
               <div>
-                  <span>Advance Paid</span>
-                  <span>${(Number(props.advanceAmount) || 0).toFixed(2)} LKR</span>
+                  <span>Item Value</span>
+                  <span>${(Number(props.subTotal) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div>
+                  <span>Deposit</span>
+                  <span>${(Number(props.depositAmount) || 0).toFixed(2)} LKR</span>
               </div>
               <div style="font-weight: bold;">
-                  <span>Amount Due (After Advance)</span>
+                  <span>Total Paid (Item + Deposit)</span>
+                  <span>${(Number(props.total) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div>
+                  <span>Cash</span>
+                  <span>${(Number(props.cash) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div style="font-weight: bold;">
+                  <span>Balance</span>
+                  <span>${(Number(props.balance) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div style="font-size:9px; font-style:italic; border-top:1px dashed #000; padding-top:6px; margin-top:4px; line-height:1.6; display:flex; flex-direction:column;">
+                  <span style="margin:1px 0; display:block;">★ ගිවිසගත් දිනයට පෙර භාරගත් අයිතමය භාර නොදී සිටීමෙන්, අදාළ දිනය ඉක්මවා ඇති එක් දිනක් සඳහා රු. 200 ක මුදලක් අමතරව අය කෙරේ.</span>
+                  <span style="margin:1px 0; display:block;">★ භාරගත් අයිතමයට යම් හානියක් සිදුවී ඇත්නම්, ඊට අදාළ අලාභය තැන්පතු මුදලින් අය කරගනු ලැබේ.</span>
+                  <span style="margin:1px 0; display:block;">★ අත්තිකාරම් මුදලක් ගෙවා භාරගත් අයිතමය ගනුදෙනුව හදිසියේ අවසන් කර භාරදෙන්නේ නම්, කිසිම හේතුවක් මත අත්තිකාරම් මුදල ආපසු ගෙවනු නොලැබේ.</span>
+              </div>
+              ` : props.hasRentalItems && props.isBookedImport ? `
+              <div>
+                  <span>Rental Period</span>
+                  <span>${props.rentalDateFrom || 'N/A'} to ${props.rentalDateTo || 'N/A'}</span>
+              </div>
+              <div>
+                  <span>Item Value</span>
+                  <span>${(Number(props.subTotal) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div>
+                  <span>Advance Already Paid</span>
+                  <span>- ${(Number(props.advanceAmount) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div>
+                  <span>Deposit</span>
+                  <span>${(Number(props.depositAmount) || 0).toFixed(2)} LKR</span>
+              </div>
+              <div style="font-weight: bold;">
+                  <span>Total Paid</span>
                   <span>${(Number(props.total) || 0).toFixed(2)} LKR</span>
               </div>
               <div>
