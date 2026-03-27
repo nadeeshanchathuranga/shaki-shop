@@ -195,6 +195,26 @@
                 </td>
                 <td class="p-4 text-center border-t border-gray-200">
                   <div class="inline-flex items-center w-full space-x-3">
+                    <Link
+                      :href="route('suppliers.invoice', supplier.id)"
+                      :class="
+                        HasRole(['Admin'])
+                          ? 'px-4 py-2 bg-blue-500 text-white rounded-lg'
+                          : 'px-4 py-2 bg-blue-400 text-white rounded-lg cursor-not-allowed'
+                      "
+                      :title="
+                        HasRole(['Admin'])
+                          ? ''
+                          : 'You do not have permission to view invoice'
+                      "
+                      :disabled="!HasRole(['Admin'])"
+                      @click="(event) => {
+                        if (!HasRole(['Admin'])) event.preventDefault();
+                      }"
+                    >
+                      Invoice
+                    </Link>
+
                     <!-- <button
                       v-if="HasRole(['Admin'])"
                       @click="
