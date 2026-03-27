@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\RentalBooking;
 use App\Models\SaleItem;
 use App\Models\Supplier;
 use App\Models\SupplierCommissionPayment;
@@ -182,12 +183,11 @@ class SupplierController extends Controller
 
     private function getSupplierCommissionInvoiceData(int $supplierId): array
     {
-        $commissionRows = SaleItem::query()
+        $rentNowRows = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('rental_items', 'rental_items.id', '=', 'sale_items.rental_item_id')
             ->where('rental_items.supplier_id', $supplierId)
             ->whereNotNull('sale_items.rental_item_id')
-            ->orderByDesc('sale_items.created_at')
             ->get([
                 'sale_items.id',
                 'sale_items.created_at',
@@ -206,7 +206,7 @@ class SupplierController extends Controller
                 $shopCommission = round($quantity * (float) $row->commission_amount_shop, 2);
 
                 return [
-                    'id' => $row->id,
+                    'id' => 'sale-' . $row->id,
                     'date' => optional($row->created_at)->format('Y-m-d H:i:s'),
                     'order_id' => $row->order_id,
                     'rental_type' => $row->rental_type,
@@ -217,6 +217,49 @@ class SupplierController extends Controller
                     'supplier_commission' => $supplierCommission,
                     'shop_commission' => $shopCommission,
                 ];
+            })
+            ->values();
+
+        // Include only active Rent Later bookings. Completed bookings are represented by sale items.
+        $rentLaterRows = RentalBooking::query()
+            ->join('rental_items', 'rental_items.id', '=', 'rental_bookings.rental_item_id')
+            ->where('rental_items.supplier_id', $supplierId)
+            ->where('rental_bookings.status', 'booked')
+            ->get([
+                'rental_bookings.id',
+                'rental_bookings.created_at',
+                'rental_bookings.booking_order_id',
+                'rental_bookings.quantity',
+                'rental_bookings.unit_price',
+                'rental_bookings.total_price',
+                'rental_items.item_name',
+                'rental_items.commission_amount_shop',
+                'rental_items.commission_amount_supplier',
+            ])
+            ->map(function ($row) {
+                $quantity = (float) $row->quantity;
+                $supplierCommission = round($quantity * (float) $row->commission_amount_supplier, 2);
+                $shopCommission = round($quantity * (float) $row->commission_amount_shop, 2);
+
+                return [
+                    'id' => 'booking-' . $row->id,
+                    'date' => optional($row->created_at)->format('Y-m-d H:i:s'),
+                    'order_id' => $row->booking_order_id,
+                    'rental_type' => 'rent_later',
+                    'item_name' => $row->item_name,
+                    'quantity' => $quantity,
+                    'unit_price' => (float) $row->unit_price,
+                    'total_price' => (float) $row->total_price,
+                    'supplier_commission' => $supplierCommission,
+                    'shop_commission' => $shopCommission,
+                ];
+            })
+            ->values();
+
+        $commissionRows = $rentNowRows
+            ->concat($rentLaterRows)
+            ->sortByDesc(function ($row) {
+                return strtotime((string) ($row['date'] ?? ''));
             })
             ->values();
 
