@@ -1172,7 +1172,12 @@ const printBookingReceipt = (data) => {
     printWindow.document.open();
     printWindow.document.write(receiptHTML);
     printWindow.document.close();
-    printWindow.onload = () => { printWindow.focus(); printWindow.print(); printWindow.close(); };
+    printWindow.onload = () => { 
+        printWindow.focus(); 
+        printWindow.print(); 
+        // Delay closing to allow print to complete
+        setTimeout(() => { printWindow.close(); }, 1000);
+    };
 };
 
 // const searchTerm = ref(form.barcode);

@@ -486,7 +486,8 @@ const productRows = props.products
     printWindow.onload = () => {
         printWindow.focus();
         printWindow.print();
-        printWindow.close();
+        // Delay closing to allow print to complete
+        setTimeout(() => { printWindow.close(); }, 1000);
     };
 };
 </script>
