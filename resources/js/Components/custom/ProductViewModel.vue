@@ -246,16 +246,18 @@ const formattedDate = computed(() =>
     return;
   }
 
-  // Exact 30mm × 18mm sticker size - 1 per row guaranteed
+  // Exact 30mm × 20mm sticker size
   const MM_TO_PX = 3.78;
   const LABEL_W_MM = 30;
-  const LABEL_H_MM = 18;
-  const BARCODE_H_MM = 7;
+  const LABEL_H_MM = 20;
+  const BARCODE_H_MM = 9;
+  const BARCODE_OFFSET_MM = 0.7;
 
   // Build labels HTML
   const labelsHtml = Array.from({ length: count }).map((_, idx) => `
     <div class="barcode-label">
-      <div class="product-name">${selectedProduct?.name || 'N/A'}</div>
+      <div class="product-name">Shaki Shop</div>
+      <div class="product-name" style="font-size: 10px; padding-bottom:3px;">${selectedProduct?.name || 'N/A'}</div>
 
       <div class="barcode-svg"><svg id="barcode${idx + 1}"></svg></div>
       <div class="bottom-info">${(selectedProduct?.selling_price ?? 'N/A')} LKR</div>
@@ -267,11 +269,12 @@ const formattedDate = computed(() =>
     <head>
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
       <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
           background: white;
           margin: 0;
           padding: 0;
+          width: 100%;
         }
         body {
           font-family: "Poppins", sans-serif;
@@ -280,9 +283,9 @@ const formattedDate = computed(() =>
         }
 
         .barcode-container {
-          width: 36mm; /* Exactly 1 sticker × 30mm + padding */
-          margin: 0 auto;
-          padding: 3mm;
+          width: 100%;
+          margin: 0;
+          padding: 0;
           display: flex;
           flex-wrap: wrap;
           justify-content: center;
@@ -298,13 +301,15 @@ const formattedDate = computed(() =>
           min-height: ${LABEL_H_MM}mm;
           max-height: ${LABEL_H_MM}mm;
           background: white;
-          padding: 0.8mm;
+          padding: 0.6mm 0.7mm;
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: space-between;
+          justify-content: center;
+          gap: 0.45mm;
           overflow: hidden;
           page-break-inside: avoid;
+          break-inside: avoid;
           flex-shrink: 0;
           flex-grow: 0;
         }
@@ -336,10 +341,13 @@ const formattedDate = computed(() =>
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          transform: translateY(${BARCODE_OFFSET_MM}mm);
         }
         .barcode-svg svg {
-          width: 95%;
-          height: 100%;
+          width: 100%;
+          height: ${BARCODE_H_MM}mm;
+          display: block;
+          margin: 0 auto;
         }
 
         .bottom-info {
@@ -352,7 +360,7 @@ const formattedDate = computed(() =>
 
         @media print {
           @page {
-            margin: 3mm;
+            margin: 0;
             size: auto;
           }
           html, body {
@@ -360,8 +368,8 @@ const formattedDate = computed(() =>
             margin: 0;
           }
           .barcode-container {
-            margin: 0 auto;
-            padding: 2mm;
+            margin: 0;
+            padding: 0;
           }
         }
       </style>
@@ -385,10 +393,11 @@ const formattedDate = computed(() =>
       JsBarcode(svg, barcode, {
         format: 'CODE128',
         lineColor: '#000',
-        width: 1.3,
+        width: 1.2,
         height: Math.round(BARCODE_H_MM * MM_TO_PX),
         displayValue: false,
         margin: 0,
+        textMargin: 0,
       });
     }
 
