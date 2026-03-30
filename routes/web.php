@@ -69,6 +69,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
     Route::resource('suppliers', SupplierController::class);
+    Route::get('/suppliers/{supplier}/invoice', [SupplierController::class, 'invoice'])->name('suppliers.invoice');
+    Route::post('/suppliers/{supplier}/invoice/payments', [SupplierController::class, 'storeInvoicePayment'])->name('suppliers.invoice.payments.store');
     Route::post('suppliers/{supplier}', [SupplierController::class, 'update']);
     Route::post('products/{product}', [ProductController::class, 'update']);
     Route::post('products-variant', [ProductController::class, 'productVariantStore'])->name('productVariant');
