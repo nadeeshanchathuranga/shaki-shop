@@ -7,7 +7,7 @@
         @focus="onFocus"
         @blur="onBlur"
         @input="onInput"
-        class="w-40 text-right text-black px-6   text-lg placeholder-gray-500 border border-gray-300 rounded-full"
+        class="w-40 text-right text-black px-6 text-lg placeholder-gray-500 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
       />
     </div>
   </template>

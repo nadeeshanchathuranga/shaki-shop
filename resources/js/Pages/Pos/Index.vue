@@ -397,10 +397,12 @@
                                 </template>
                             </div>
 
-                            <div class="flex items-center justify-between w-full px-8 pt-4 pb-4 border-b border-black">
+                            <div class="flex items-center justify-between w-full px-8 pt-4 pb-4 border-b border-black rounded-lg transition focus-within:bg-blue-50 focus-within:ring-2 focus-within:ring-blue-400">
                                 <p class="text-xl text-black">Cash</p>
                                 <span>
-                                    <CurrencyInput ref="cashInputRef" v-model="cash" :options="{ currency: 'EUR' }" />
+                                    <CurrencyInput ref="cashInputRef" v-model="cash" :options="{ currency: 'EUR' }"
+                                        @keydown.down.prevent="paymentCashRef?.focus()"
+                                        @keydown.up.prevent="cashInputRef?.focus()" />
                                     <span class="ml-2">LKR</span>
                                 </span>
                             </div>
@@ -441,41 +443,46 @@
                         <div class="flex flex-col w-full space-y-8">
                             <div class="flex items-center justify-center w-full pt-8 space-x-8">
                                 <p class="text-xl text-black">Payment Method :</p>
-                                <div tabindex="0"
+                                <div ref="paymentCashRef" tabindex="0"
                                     @click="selectedPaymentMethod = 'cash'"
                                     @keydown.space.prevent="selectedPaymentMethod = 'cash'"
                                     @keydown.enter.prevent="selectedPaymentMethod = 'cash'"
+                                    @keydown.right.prevent="paymentCardRef?.focus()"
+                                    @keydown.down.prevent="confirmOrderRef?.focus()"
+                                    @keydown.up.prevent="cashInputRef?.focus()"
                                     :class="[
-                                    'cursor-pointer w-[100px] border border-black rounded-xl flex flex-col justify-center items-center text-center focus:outline-none focus:ring-2 focus:ring-yellow-400',
+                                    'cursor-pointer w-[100px] border-2 border-black rounded-xl flex flex-col justify-center items-center text-center transition focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-blue-500 focus:scale-105',
                                     selectedPaymentMethod === 'cash'
-                                        ? 'bg-yellow-500 font-bold'
-                                        : 'text-black',
+                                        ? 'bg-yellow-400 border-yellow-600 shadow-md font-bold'
+                                        : 'text-black hover:bg-gray-100',
                                 ]">
                                     <img src="/images/money-stack.png" alt="Cash" class="w-24" />
                                 </div>
-                                <div tabindex="0"
+                                <div ref="paymentCardRef" tabindex="0"
                                     @click="selectedPaymentMethod = 'card'"
                                     @keydown.space.prevent="selectedPaymentMethod = 'card'"
                                     @keydown.enter.prevent="selectedPaymentMethod = 'card'"
+                                    @keydown.left.prevent="paymentCashRef?.focus()"
+                                    @keydown.down.prevent="confirmOrderRef?.focus()"
+                                    @keydown.up.prevent="cashInputRef?.focus()"
                                     :class="[
-                                    'cursor-pointer w-[100px] border border-black rounded-xl flex flex-col justify-center items-center text-center focus:outline-none focus:ring-2 focus:ring-yellow-400',
+                                    'cursor-pointer w-[100px] border-2 border-black rounded-xl flex flex-col justify-center items-center text-center transition focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-blue-500 focus:scale-105',
                                     selectedPaymentMethod === 'card'
-                                        ? 'bg-yellow-500 font-bold'
-                                        : 'text-black',
+                                        ? 'bg-yellow-400 border-yellow-600 shadow-md font-bold'
+                                        : 'text-black hover:bg-gray-100',
                                 ]">
                                     <img src="/images/bank-card.png" alt="Card" class="w-24" />
                                 </div>
                             </div>
 
                             <div class="flex items-center justify-center w-full">
-                                <button @click="() => {
-                                    submitOrder();
-                                }
-                                    " type="button" :disabled="products.length === 0" :class="[
-                                        'w-full bg-black py-4 text-2xl font-bold tracking-wider text-center text-white uppercase rounded-xl',
+                                <button ref="confirmOrderRef" @click="() => { submitOrder(); }" @keydown.enter.prevent="submitOrder"
+                                    @keydown.up.prevent="paymentCashRef?.focus()"
+                                    type="button" :disabled="products.length === 0" :class="[
+                                        'w-full py-4 text-2xl font-bold tracking-wider text-center text-white uppercase rounded-xl transition focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-green-400',
                                         products.length === 0
-                                            ? ' cursor-not-allowed'
-                                            : ' cursor-pointer',
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-green-600 hover:bg-green-700 cursor-pointer',
                                     ]">
                                     <i class="pr-4 ri-add-circle-fill"></i> Confirm Order
                                 </button>
@@ -974,6 +981,9 @@ const handleScannerInput = (event) => {
 
 // Attach the keypress event listener when the component is mounted
 const cashInputRef = ref(null);
+const paymentCashRef = ref(null);
+const paymentCardRef = ref(null);
+const confirmOrderRef = ref(null);
 
 onMounted(() => {
     document.addEventListener("keypress", handleScannerInput);
