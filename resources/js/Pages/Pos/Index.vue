@@ -257,11 +257,13 @@
                                 <p class="text-xl">( {{ totalDiscount }} LKR )</p>
                             </div>
 
-                            <div class="flex items-center justify-between w-full px-8 pt-4 pb-4 border-b border-black">
+                            <div class="flex items-center justify-between w-full px-8 pt-4 pb-4 border-b border-black rounded-lg transition focus-within:bg-blue-50 focus-within:ring-2 focus-within:ring-blue-400">
                                 <p class="text-xl text-black">Custom Discount</p>
                                 <span class="flex items-center">
-                                    <CurrencyInput v-model="custom_discount" @blur="validateCustomDiscount"
-                                        placeholder="Enter value" class=" rounded-md px-2 py-1 text-black text-md" />
+                                    <CurrencyInput ref="customDiscountRef" v-model="custom_discount" @blur="validateCustomDiscount"
+                                        placeholder="Enter value" class=" rounded-md px-2 py-1 text-black text-md"
+                                        @keydown.down.prevent="paymentCashRef?.focus()"
+                                        @keydown.up.prevent="cashInputRef?.focus()" />
                                     <select v-model="custom_discount_type"
                                         class="ml-2 px-8 border-black rounded-md text-black py-1 text-md">
                                         <option value="percent">%</option>
@@ -401,7 +403,7 @@
                                 <p class="text-xl text-black">Cash</p>
                                 <span>
                                     <CurrencyInput ref="cashInputRef" v-model="cash" :options="{ currency: 'EUR' }"
-                                        @keydown.down.prevent="paymentCashRef?.focus()"
+                                        @keydown.down.prevent="customDiscountRef?.focus()"
                                         @keydown.up.prevent="cashInputRef?.focus()" />
                                     <span class="ml-2">LKR</span>
                                 </span>
@@ -449,7 +451,7 @@
                                     @keydown.enter.prevent="selectedPaymentMethod = 'cash'"
                                     @keydown.right.prevent="paymentCardRef?.focus()"
                                     @keydown.down.prevent="confirmOrderRef?.focus()"
-                                    @keydown.up.prevent="cashInputRef?.focus()"
+                                    @keydown.up.prevent="customDiscountRef?.focus()"
                                     :class="[
                                     'cursor-pointer w-[100px] border-2 border-black rounded-xl flex flex-col justify-center items-center text-center transition focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-blue-500 focus:scale-105',
                                     selectedPaymentMethod === 'cash'
@@ -464,7 +466,7 @@
                                     @keydown.enter.prevent="selectedPaymentMethod = 'card'"
                                     @keydown.left.prevent="paymentCashRef?.focus()"
                                     @keydown.down.prevent="confirmOrderRef?.focus()"
-                                    @keydown.up.prevent="cashInputRef?.focus()"
+                                    @keydown.up.prevent="customDiscountRef?.focus()"
                                     :class="[
                                     'cursor-pointer w-[100px] border-2 border-black rounded-xl flex flex-col justify-center items-center text-center transition focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-blue-500 focus:scale-105',
                                     selectedPaymentMethod === 'card'
@@ -551,7 +553,7 @@ const isSelectModalOpen = ref(false);
 const isSelectRentalItemModalOpen = ref(false);
 const isReturnRentalModalOpen = ref(false);
 const isBookedItemsModalOpen = ref(false);
-const custom_discount_type = ref('percent');
+const custom_discount_type = ref('fixed');
 const rentalDateFrom = ref('');
 const rentalDateTo = ref('');
 const advanceAmount = ref(0);
@@ -961,7 +963,22 @@ const submitBarcode = async () => {
 };
 
 // Handle input from the barcode scanner
+let lastKeyTime = 0;
 const handleScannerInput = (event) => {
+    // If user is typing directly in the barcode input, let it work normally
+    if (event.target.id === 'search') return;
+
+    const now = Date.now();
+    const timeDiff = now - lastKeyTime;
+    lastKeyTime = now;
+
+    // Detect scanner: rapid keypresses (< 50ms apart) or we are mid-scan
+    const isScan = timeDiff < 50 || barcode.length > 0;
+    if (isScan) {
+        // Prevent characters from being typed into whichever input is focused (e.g. cash)
+        event.preventDefault();
+    }
+
     clearTimeout(timeout); // Clear the timeout for each keypress
     if (event.key === "Enter") {
         // Barcode scanning completed
@@ -981,6 +998,7 @@ const handleScannerInput = (event) => {
 
 // Attach the keypress event listener when the component is mounted
 const cashInputRef = ref(null);
+const customDiscountRef = ref(null);
 const paymentCashRef = ref(null);
 const paymentCardRef = ref(null);
 const confirmOrderRef = ref(null);
