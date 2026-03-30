@@ -255,8 +255,8 @@ const formattedDate = computed(() =>
 
   // Build labels HTML
   const labelsHtml = Array.from({ length: count }).map((_, idx) => `
-    <div class="barcode-label" style="margin-left:1mm;">
-      <div class="product-name" style=" padding-top:5px;">Shaki Shop</div>
+    <div class="barcode-label" style="padding-top:5px;">
+      <div class="product-name shop-name">Shaki Shop</div>
       <div class="product-name" style="font-size: 10px; padding-bottom:3px;">${selectedProduct?.name || 'N/A'}</div>
 
       <div class="barcode-svg"><svg id="barcode${idx + 1}"></svg></div>
@@ -301,7 +301,7 @@ const formattedDate = computed(() =>
           min-height: ${LABEL_H_MM}mm;
           max-height: ${LABEL_H_MM}mm;
           background: white;
-          padding: 0.6mm 0.7mm;
+          padding: 0.6mm 0.5mm;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -323,6 +323,13 @@ const formattedDate = computed(() =>
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+
+        .shop-name {
+          font-size: 7px;
+          font-weight: 700;
+          overflow: visible;
+          text-overflow: clip;
         }
 
         .product-code {
