@@ -297,6 +297,7 @@
                       type="text"
                       id="barcode"
                       placeholder="Enter Barcode"
+                      @keydown.enter.prevent
                       class="w-full px-4 py-2 mt-2 text-black rounded-md focus:outline-none focus:ring focus:ring-blue-600"
                     />
                     <span
