@@ -981,9 +981,17 @@ const handleScannerInput = (event) => {
 
     clearTimeout(timeout); // Clear the timeout for each keypress
     if (event.key === "Enter") {
-        // Barcode scanning completed
+        // Barcode scanning completed — blur any focused element so no stray
+        // characters from the next scan land in a visible input field.
+        if (document.activeElement && document.activeElement !== document.body) {
+            document.activeElement.blur();
+        }
         form.barcode = barcode; // Set the scanned barcode into the form
-        submitBarcode(); // Automatically submit the barcode
+        submitBarcode().finally(() => {
+            // Refocus cash input after the product lookup finishes so the
+            // cashier can enter the cash amount with the keyboard.
+            nextTick(() => cashInputRef.value?.focus());
+        });
         barcode = ""; // Reset the barcode for the next scan
     } else {
         // Append the pressed key to the barcode
@@ -1006,7 +1014,6 @@ const confirmOrderRef = ref(null);
 onMounted(() => {
     document.addEventListener("keypress", handleScannerInput);
     console.log(props.products);
-    nextTick(() => cashInputRef.value?.focus());
 });
 
 const applyDiscount = (id) => {
