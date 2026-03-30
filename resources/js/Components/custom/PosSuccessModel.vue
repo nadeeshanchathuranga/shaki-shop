@@ -54,8 +54,7 @@ import {
     TransitionChild,
     TransitionRoot,
 } from "@headlessui/vue";
-import { computed } from "vue";
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 
 const page = usePage();
@@ -490,4 +489,12 @@ const productRows = props.products
         setTimeout(() => { printWindow.close(); }, 1000);
     };
 };
+
+// Auto-print receipt and close modal immediately when opened
+watch(() => props.open, (newVal) => {
+    if (newVal) {
+        handlePrintReceipt();
+        emit('update:open', false);
+    }
+});
 </script>
