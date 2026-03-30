@@ -400,7 +400,7 @@
                             <div class="flex items-center justify-between w-full px-8 pt-4 pb-4 border-b border-black">
                                 <p class="text-xl text-black">Cash</p>
                                 <span>
-                                    <CurrencyInput v-model="cash" :options="{ currency: 'EUR' }" />
+                                    <CurrencyInput ref="cashInputRef" v-model="cash" :options="{ currency: 'EUR' }" />
                                     <span class="ml-2">LKR</span>
                                 </span>
                             </div>
@@ -441,21 +441,29 @@
                         <div class="flex flex-col w-full space-y-8">
                             <div class="flex items-center justify-center w-full pt-8 space-x-8">
                                 <p class="text-xl text-black">Payment Method :</p>
-                                <div @click="selectedPaymentMethod = 'cash'" :class="[
-                                    'cursor-pointer w-[100px]  border border-black rounded-xl flex flex-col justify-center items-center text-center',
+                                <div tabindex="0"
+                                    @click="selectedPaymentMethod = 'cash'"
+                                    @keydown.space.prevent="selectedPaymentMethod = 'cash'"
+                                    @keydown.enter.prevent="selectedPaymentMethod = 'cash'"
+                                    :class="[
+                                    'cursor-pointer w-[100px] border border-black rounded-xl flex flex-col justify-center items-center text-center focus:outline-none focus:ring-2 focus:ring-yellow-400',
                                     selectedPaymentMethod === 'cash'
                                         ? 'bg-yellow-500 font-bold'
                                         : 'text-black',
                                 ]">
-                                    <img src="/images/money-stack.png" alt="" class="w-24" />
+                                    <img src="/images/money-stack.png" alt="Cash" class="w-24" />
                                 </div>
-                                <div @click="selectedPaymentMethod = 'card'" :class="[
-                                    'cursor-pointer w-[100px] border border-black rounded-xl flex flex-col justify-center items-center text-center',
+                                <div tabindex="0"
+                                    @click="selectedPaymentMethod = 'card'"
+                                    @keydown.space.prevent="selectedPaymentMethod = 'card'"
+                                    @keydown.enter.prevent="selectedPaymentMethod = 'card'"
+                                    :class="[
+                                    'cursor-pointer w-[100px] border border-black rounded-xl flex flex-col justify-center items-center text-center focus:outline-none focus:ring-2 focus:ring-yellow-400',
                                     selectedPaymentMethod === 'card'
                                         ? 'bg-yellow-500 font-bold'
                                         : 'text-black',
                                 ]">
-                                    <img src="/images/bank-card.png" alt="" class="w-24" />
+                                    <img src="/images/bank-card.png" alt="Card" class="w-24" />
                                 </div>
                             </div>
 
@@ -511,7 +519,7 @@ import Banner from "@/Components/Banner.vue";
 import PosSuccessModel from "@/Components/custom/PosSuccessModel.vue";
 import AlertModel from "@/Components/custom/AlertModel.vue";
 import { useForm, router } from "@inertiajs/vue3";
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch, nextTick } from "vue";
 import { Head } from "@inertiajs/vue3";
 import { Link } from "@inertiajs/vue3";
 import axios from "axios";
@@ -965,9 +973,12 @@ const handleScannerInput = (event) => {
 };
 
 // Attach the keypress event listener when the component is mounted
+const cashInputRef = ref(null);
+
 onMounted(() => {
     document.addEventListener("keypress", handleScannerInput);
     console.log(props.products);
+    nextTick(() => cashInputRef.value?.focus());
 });
 
 const applyDiscount = (id) => {

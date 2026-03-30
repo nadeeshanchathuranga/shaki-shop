@@ -53,4 +53,6 @@
     valueRange: { min: 0 },
     locale: 'en'
   })
+
+  defineExpose({ focus: () => inputRef.value?.focus() })
   </script>
