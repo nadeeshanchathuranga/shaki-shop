@@ -255,8 +255,8 @@ const formattedDate = computed(() =>
 
   // Build labels HTML
   const labelsHtml = Array.from({ length: count }).map((_, idx) => `
-    <div class="barcode-label">
-      <div class="product-name">Shaki Shop</div>
+    <div class="barcode-label" style="margin-left:1mm;">
+      <div class="product-name" style=" padding-top:5px;">Shaki Shop</div>
       <div class="product-name" style="font-size: 10px; padding-bottom:3px;">${selectedProduct?.name || 'N/A'}</div>
 
       <div class="barcode-svg"><svg id="barcode${idx + 1}"></svg></div>
