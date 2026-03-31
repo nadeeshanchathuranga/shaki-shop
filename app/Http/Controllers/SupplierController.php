@@ -45,9 +45,9 @@ class SupplierController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:191|regex:/^[a-zA-Z\s]+$/',
-           'contact' => 'required|string|regex:/^\d{10}$/',
-            'email' => 'required|email|regex:/^[\w\.-]+@[a-zA-Z0-9\.-]+\.[a-zA-Z]{2,6}$/|max:255|unique:suppliers,email',
-            'address' => 'required|string|max:500',
+            'contact' => 'nullable|string|regex:/^\d{10}$/',
+            'email' => 'nullable|email|regex:/^[\w\.-]+@[a-zA-Z0-9\.-]+\.[a-zA-Z]{2,6}$/|max:255|unique:suppliers,email',
+            'address' => 'nullable|string|max:500',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:1024',
         ]);
 
@@ -68,7 +68,15 @@ class SupplierController extends Controller
             $validated['image'] = 'storage/' . $path;
         }
 
-        Supplier::create($validated);
+        $supplier = Supplier::create($validated);
+
+        // For AJAX/Inertia requests, return JSON response with the new supplier
+        if ($request->wantsJson() || $request->expectsJson()) {
+            return response()->json([
+                'supplier' => $supplier,
+                'message' => 'Supplier created successfully.'
+            ], 201);
+        }
 
         return redirect()->route('suppliers.index')->banner('Supplier created successfully.');
     }

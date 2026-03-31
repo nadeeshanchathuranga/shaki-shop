@@ -10,6 +10,7 @@ use App\Models\Sale;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class RentalItemController extends Controller
@@ -56,22 +57,40 @@ class RentalItemController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'rental_quantity' => 'required|integer|min:1',
             'rent_price' => 'required|numeric|min:0',
-            'commission_percentage_shop' => 'required|numeric|min:0|max:100',
-            'commission_percentage_supplier' => 'required|numeric|min:0|max:100',
+            'commission_type_shop' => 'required|in:percentage,fixed',
+            'commission_type_supplier' => 'required|in:percentage,fixed',
+            'commission_percentage_shop' => [
+                'required',
+                'numeric',
+                'min:0',
+                Rule::when(
+                    $request->input('commission_type_shop') === 'percentage',
+                    ['max:100']
+                ),
+            ],
+            'commission_percentage_supplier' => [
+                'required',
+                'numeric',
+                'min:0',
+                Rule::when(
+                    $request->input('commission_type_supplier') === 'percentage',
+                    ['max:100']
+                ),
+            ],
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
         try {
             // Calculate commission amounts
             $rentPrice = $validated['rent_price'];
-            $validated['commission_amount_shop'] = round(
-                $rentPrice * ($validated['commission_percentage_shop'] ?? 0) / 100,
-                2
-            );
-            $validated['commission_amount_supplier'] = round(
-                $rentPrice * ($validated['commission_percentage_supplier'] ?? 0) / 100,
-                2
-            );
+
+            $validated['commission_amount_shop'] = $validated['commission_type_shop'] === 'percentage'
+                ? round($rentPrice * ($validated['commission_percentage_shop'] ?? 0) / 100, 2)
+                : round($validated['commission_percentage_shop'] ?? 0, 2);
+
+            $validated['commission_amount_supplier'] = $validated['commission_type_supplier'] === 'percentage'
+                ? round($rentPrice * ($validated['commission_percentage_supplier'] ?? 0) / 100, 2)
+                : round($validated['commission_percentage_supplier'] ?? 0, 2);
 
             // Handle image upload
             if ($request->hasFile('image')) {
@@ -107,22 +126,40 @@ class RentalItemController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'rental_quantity' => 'required|integer|min:1',
             'rent_price' => 'required|numeric|min:0',
-            'commission_percentage_shop' => 'required|numeric|min:0|max:100',
-            'commission_percentage_supplier' => 'required|numeric|min:0|max:100',
+            'commission_type_shop' => 'required|in:percentage,fixed',
+            'commission_type_supplier' => 'required|in:percentage,fixed',
+            'commission_percentage_shop' => [
+                'required',
+                'numeric',
+                'min:0',
+                Rule::when(
+                    $request->input('commission_type_shop') === 'percentage',
+                    ['max:100']
+                ),
+            ],
+            'commission_percentage_supplier' => [
+                'required',
+                'numeric',
+                'min:0',
+                Rule::when(
+                    $request->input('commission_type_supplier') === 'percentage',
+                    ['max:100']
+                ),
+            ],
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
         try {
             // Calculate commission amounts
             $rentPrice = $validated['rent_price'];
-            $validated['commission_amount_shop'] = round(
-                $rentPrice * ($validated['commission_percentage_shop'] ?? 0) / 100,
-                2
-            );
-            $validated['commission_amount_supplier'] = round(
-                $rentPrice * ($validated['commission_percentage_supplier'] ?? 0) / 100,
-                2
-            );
+
+            $validated['commission_amount_shop'] = $validated['commission_type_shop'] === 'percentage'
+                ? round($rentPrice * ($validated['commission_percentage_shop'] ?? 0) / 100, 2)
+                : round($validated['commission_percentage_shop'] ?? 0, 2);
+
+            $validated['commission_amount_supplier'] = $validated['commission_type_supplier'] === 'percentage'
+                ? round($rentPrice * ($validated['commission_percentage_supplier'] ?? 0) / 100, 2)
+                : round($validated['commission_percentage_supplier'] ?? 0, 2);
 
             // Handle image upload
             if ($request->hasFile('image')) {

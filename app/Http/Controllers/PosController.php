@@ -124,7 +124,17 @@ class PosController extends Controller
 
 
         // Calculate total combined discount
-        $totalDiscount = $productDiscounts + $couponDiscount ;
+        $totalDiscount = $productDiscounts + $couponDiscount;
+
+        $customDiscount = (float) $request->input('custom_discount', 0);
+        $baseTotal = (float) $request->input('base_total', 0);
+        if ($baseTotal <= 0) {
+            $baseTotal = max(0, $totalAmount - $totalDiscount - $customDiscount);
+        }
+
+        $paymentMethod = $request->input('paymentMethod');
+        $isCardPayment = strtolower((string) $paymentMethod) === 'card';
+        $bankFee = $isCardPayment ? round($baseTotal * 0.03, 2) : 0;
 
         DB::beginTransaction(); // Start a transaction
 
@@ -167,10 +177,11 @@ class PosController extends Controller
                 'total_amount' => $totalAmount, // Total amount of the sale
                 'discount' => $totalDiscount, // Default discount to 0 if not provided
                 'total_cost' => $totalCost,
-                'payment_method' => $request->input('paymentMethod'), // Payment method from the request
+                'payment_method' => $paymentMethod, // Payment method from the request
                 'sale_date' => now()->toDateString(), // Current date
                 'cash' => $request->input('cash'),
-                'custom_discount' => $request->input('custom_discount'),
+                'custom_discount' => $customDiscount,
+                'bank_fee' => $bankFee,
                 'rental_date_from' => $request->input('rental_date_from'),
                 'rental_date_to' => $request->input('rental_date_to'),
                 'advance_amount' => $request->input('advance_amount', 0),

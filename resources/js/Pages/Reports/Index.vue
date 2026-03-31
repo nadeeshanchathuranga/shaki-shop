@@ -109,7 +109,7 @@
 
 
 <!-- KPI Cards (use the same totals the table uses) -->
-<div class="grid w-full md:grid-cols-5 grid-cols-3 gap-4 mb-4">
+<div class="grid w-full md:grid-cols-6 grid-cols-3 gap-4 mb-4">
   <div class="py-6 flex flex-col justify-center items-center border-2 border-[#EC6116] w-full space-y-4 rounded-2xl bg-[#EC611666] shadow-lg hover:-translate-y-1 transition">
     <div class="flex flex-col items-center justify-center">
       <h2 class="text-xl font-extrabold tracking-wide text-black uppercase">Total Sales</h2>
@@ -126,6 +126,11 @@
   <div class="py-6 flex flex-col justify-center items-center border-2 border-[#16D0EC] w-full space-y-4 rounded-2xl bg-[#16D0EC66] shadow-lg hover:-translate-y-1 transition">
     <h2 class="text-xl font-extrabold tracking-wide text-black uppercase">Total Discount</h2>
     <p class="text-2xl font-bold text-black">{{ toMoney(salesDiscountTotal) }} LKR</p>
+  </div>
+
+  <div class="py-6 flex flex-col justify-center items-center border-2 border-[#FF9F1C] w-full space-y-4 rounded-2xl bg-[#FF9F1C66] shadow-lg hover:-translate-y-1 transition">
+    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase">Card Fees</h2>
+    <p class="text-2xl font-bold text-black">{{ toMoney(totalBankFee) }} LKR</p>
   </div>
 
 
@@ -515,6 +520,7 @@ const props = defineProps({
   totalCustomDiscountLkr: { type: Number, required: true },  // custom discount total after type conversion
 
   totalCustomer: { type: Number, required: true },
+  totalBankFee: { type: Number, required: true },
   startDate: { type: String, default: "" },
   endDate: { type: String, default: "" },
   categorySales: { type: Object, required: true },

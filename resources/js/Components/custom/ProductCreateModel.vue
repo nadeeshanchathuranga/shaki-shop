@@ -57,6 +57,12 @@
                 >
                   Add Category
                 </button>
+                <button
+                  @click="isQuickSupplierOpen = true"
+                  class="px-8 py-3 text-white bg-orange-600 rounded hover:bg-orange-700 text-lg font-medium mx-4"
+                >
+                  Add Supplier
+                </button>
               </div>
             </div>
 
@@ -605,6 +611,13 @@
       </div>
     </Dialog>
   </TransitionRoot>
+
+  <!-- Quick Supplier Creation Modal -->
+  <QuickSupplierCreateModel
+    :open="isQuickSupplierOpen"
+    @update:open="isQuickSupplierOpen = $event"
+    @supplier-created="handleSupplierCreated"
+  />
 </template>
  <script setup>
 import {
@@ -616,10 +629,12 @@ import {
 } from "@headlessui/vue";
 import { ref, computed, watch } from "vue";
 import { useForm } from "@inertiajs/vue3";
+import QuickSupplierCreateModel from "@/Components/custom/QuickSupplierCreateModel.vue";
 
 const emit = defineEmits(["update:open"]);
 
 const isPharma = computed(() => import.meta.env.VITE_APP_NAME === "pharma");
+const isQuickSupplierOpen = ref(false);
 
 // Define props
 const { open, categories, colors, suppliers, sizes, selectedProduct } =
@@ -744,6 +759,19 @@ const submit = () => {
       console.error("Form submission failed:", errors);
     },
   });
+};
+
+const handleSupplierCreated = (newSupplier) => {
+  // If a new supplier was created, add it to the list
+  if (newSupplier && newSupplier.id) {
+    // Push the new supplier to the list if not already present
+    const supplierExists = suppliers.some(s => s.id === newSupplier.id);
+    if (!supplierExists) {
+      suppliers.push(newSupplier);
+    }
+    // Auto-select the new supplier
+    form.supplier_id = newSupplier.id;
+  }
 };
 
 const submitSize = () => {
