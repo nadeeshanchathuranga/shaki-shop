@@ -63,9 +63,28 @@ class PosController extends Controller
             ->orWhere('code', $request->barcode)
             ->first();
 
+        if ($product) {
+            return response()->json([
+                'product' => $product,
+                'type' => 'product',
+                'error' => null,
+            ]);
+        }
+
+        $rentalItem = RentalItem::where('barcode', $request->barcode)->first();
+
+        if ($rentalItem) {
+            return response()->json([
+                'product' => $rentalItem,
+                'type' => 'rental',
+                'error' => null,
+            ]);
+        }
+
         return response()->json([
-            'product' => $product,
-            'error' => $product ? null : 'Product not found',
+            'product' => null,
+            'type' => null,
+            'error' => 'Item not found',
         ]);
     }
 
