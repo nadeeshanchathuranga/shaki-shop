@@ -11,6 +11,7 @@ class RentalItem extends Model
 
     protected $fillable = [
         'item_name',
+        'barcode',
         'category_id',
         'color_id',
         'size',
