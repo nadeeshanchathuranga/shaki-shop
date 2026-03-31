@@ -6,8 +6,6 @@ use App\Models\Product;
 use App\Models\Report;
 use App\Models\Sale;
 use App\Models\SaleItem;
-use App\Models\StockTransaction;
-use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -132,6 +130,7 @@ class ReportController extends Controller
     $netProfit               = $totalSaleAmount - $totalCost - ($totalProductDiscountLkr + $totalCustomDiscountLkr);
     $totalTransactions       = $sales->count();
     $averageTransactionValue = $totalTransactions > 0 ? ($totalSaleAmount / $totalTransactions) : 0;
+    $totalBankFee            = (float) $sales->sum('bank_fee');
 
     // Distinct customers (same filter)
     $totalCustomer = (clone $salesQuery)->distinct('customer_id')->count('customer_id');
@@ -151,6 +150,7 @@ class ReportController extends Controller
         'netProfit'                 => round($netProfit, 2),
         'totalTransactions'         => $totalTransactions,
         'averageTransactionValue'   => round($averageTransactionValue, 2),
+        'totalBankFee'              => round($totalBankFee, 2),
         'totalCustomer'             => $totalCustomer,
 
         'startDate'                 => $startDateRaw,

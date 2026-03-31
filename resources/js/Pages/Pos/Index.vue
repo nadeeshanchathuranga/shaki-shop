@@ -408,9 +408,13 @@
                                     <span class="ml-2">LKR</span>
                                 </span>
                             </div>
+                            <div v-if="isCardPayment" class="flex items-center justify-between w-full px-8 pt-4">
+                                <p class="text-xl text-black">Card Fee (3%)</p>
+                                <p class="text-xl text-black">{{ bankFee.toFixed(2) }} LKR</p>
+                            </div>
                             <div class="flex items-center justify-between w-full px-8 pt-4">
                                 <p class="text-3xl text-black">Total</p>
-                                <p class="text-3xl text-black">{{ total }} LKR</p>
+                                <p class="text-3xl text-black">{{ totalWithFee }} LKR</p>
                             </div>
 
 
@@ -497,7 +501,7 @@
     </div>
     <PosSuccessModel :open="isSuccessModalOpen" @update:open="handleModalOpenUpdate" :products="products"
         :employee="employee" :cashier="loggedInUser" :customer="customer" :orderid="orderid" :cash="cash"
-        :balance="balance" :subTotal="subtotal" :totalDiscount="totalDiscount" :total="total"
+        :balance="balance" :subTotal="subtotal" :totalDiscount="totalDiscount" :total="totalWithFee"
         :custom_discount_type="custom_discount_type"
         :custom_discount="custom_discount"
         :rentalDateFrom="rentalDateFrom"
@@ -696,6 +700,9 @@ const submitOrder = async () => {
             orderid: orderid.value,
             cash: cash.value,
             custom_discount: custom_discount.value,
+            base_total: total.value,
+            bank_fee: bankFee.value,
+            total_with_fee: totalWithFee.value,
             rental_date_from: rentalDateFrom.value || null,
             rental_date_to: rentalDateTo.value || null,
             advance_amount: advanceAmount.value || 0,
@@ -841,6 +848,16 @@ const total = computed(() => {
     return totalBeforeAdvance.toFixed(2);
 });
 
+const isCardPayment = computed(() => selectedPaymentMethod.value === 'card');
+const bankFee = computed(() => {
+    const base = parseFloat(total.value) || 0;
+    return isCardPayment.value ? (base * 0.03) : 0;
+});
+const totalWithFee = computed(() => {
+    const base = parseFloat(total.value) || 0;
+    return (base + bankFee.value).toFixed(2);
+});
+
 const remainingAfterAdvance = computed(() => {
     const subtotalValue = parseFloat(subtotal.value) || 0;
     const discountValue = parseFloat(totalDiscount.value) || 0;
@@ -862,7 +879,7 @@ const balance = computed(() => {
     if (cash.value == null || cash.value === 0) {
         return 0; // If cash.value is null or 0, return 0
     }
-    return (parseFloat(cash.value) - parseFloat(total.value)).toFixed(2);
+    return (parseFloat(cash.value) - parseFloat(totalWithFee.value)).toFixed(2);
 });
 // Check for product or handle errors
 const form = useForm({
