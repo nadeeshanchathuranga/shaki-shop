@@ -8,12 +8,15 @@ use App\Models\RentalItem;
 use App\Models\RentalBooking;
 use App\Models\Sale;
 use App\Models\Supplier;
+use App\Traits\GeneratesUniqueCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class RentalItemController extends Controller
 {
+    use GeneratesUniqueCode;
+
     /**
      * Display a listing of the resource.
      */
@@ -80,6 +83,9 @@ class RentalItemController extends Controller
                 $path = $request->file('image')->storeAs('rental_items', $fileName, 'public');
                 $validated['image'] = 'storage/' . $path;
             }
+
+            // Always generate and save a barcode for new rental items.
+            $validated['barcode'] = $this->generateUniqueRentalBarcode();
 
             RentalItem::create($validated);
 
@@ -348,5 +354,14 @@ class RentalItemController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function generateUniqueRentalBarcode(): string
+    {
+        do {
+            $barcode = $this->generateUniqueCode(8);
+        } while (RentalItem::where('barcode', $barcode)->exists());
+
+        return $barcode;
     }
 }

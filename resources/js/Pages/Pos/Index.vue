@@ -914,37 +914,72 @@ const submitBarcode = async () => {
         });
 
         // Extract the response data
-        const { product: fetchedProduct, error: fetchedError } = response.data;
+        const { product: fetchedProduct, type: fetchedType, error: fetchedError } = response.data;
 
         if (fetchedProduct) {
-            if (fetchedProduct.stock_quantity < 1) {
-                isAlertModalOpen.value = true;
-                message.value = "Product is out of stock";
-                return;
-            }
-            // Check if the product already exists in the products array
-            const existingProduct = products.value.find(
-                (item) => item.id === fetchedProduct.id
-            );
+            if (fetchedType === "rental") {
+                const posFormattedItem = {
+                    id: "rental_" + fetchedProduct.id,
+                    original_rental_id: fetchedProduct.id,
+                    name: fetchedProduct.item_name + " (Rental)",
+                    selling_price: fetchedProduct.rent_price,
+                    image: fetchedProduct.image,
+                    is_rental: true,
+                    stock_quantity: fetchedProduct.rental_quantity,
+                };
 
-            if (existingProduct) {
-                // If it exists, increment the quantity
-                existingProduct.quantity += 1;
+                if (posFormattedItem.stock_quantity < 1) {
+                    isAlertModalOpen.value = true;
+                    message.value = "Rental item is out of stock";
+                    return;
+                }
+
+                const existingRentalItem = products.value.find(
+                    (item) => item.id === posFormattedItem.id
+                );
+
+                if (existingRentalItem) {
+                    if (existingRentalItem.quantity < posFormattedItem.stock_quantity) {
+                        existingRentalItem.quantity += 1;
+                    } else {
+                        isAlertModalOpen.value = true;
+                        message.value = `Cannot exceed available rental quantity (${posFormattedItem.stock_quantity}) for this item.`;
+                    }
+                } else {
+                    products.value.push({
+                        ...posFormattedItem,
+                        quantity: 1,
+                        apply_discount: false,
+                    });
+                }
             } else {
-                // If it doesn't exist, add it to the products array with quantity 1
-                products.value.push({
-                    ...fetchedProduct,
-                    quantity: 1,
-                    apply_discount: false, // Add the new attribute
-                });
+                if (fetchedProduct.stock_quantity < 1) {
+                    isAlertModalOpen.value = true;
+                    message.value = "Product is out of stock";
+                    return;
+                }
+
+                // Check if the product already exists in the products array
+                const existingProduct = products.value.find(
+                    (item) => item.id === fetchedProduct.id
+                );
+
+                if (existingProduct) {
+                    // If it exists, increment the quantity
+                    existingProduct.quantity += 1;
+                } else {
+                    // If it doesn't exist, add it to the products array with quantity 1
+                    products.value.push({
+                        ...fetchedProduct,
+                        quantity: 1,
+                        apply_discount: false, // Add the new attribute
+                    });
+                }
             }
 
             product.value = fetchedProduct; // Update product state for individual display
             error.value = null; // Clear any previous errors
-            console.log(
-                "Product fetched successfully and added to cart:",
-                fetchedProduct
-            );
+            console.log("Item fetched successfully and added to cart:", fetchedProduct);
         } else {
             isAlertModalOpen.value = true;
             message.value = fetchedError;

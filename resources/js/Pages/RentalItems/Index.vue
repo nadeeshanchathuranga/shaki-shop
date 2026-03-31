@@ -69,13 +69,14 @@
           >
             <div>
               <img
+                @click="openViewModal(item)"
                 :src="
                   item.image
                     ? `/${item.image}`
                     : '/images/placeholder.jpg'
                 "
                 alt="Rental Item Image"
-                class="object-cover w-full h-64"
+                class="object-cover w-full h-64 cursor-pointer hover:opacity-80 transition-opacity"
               />
             </div>
             <div class="px-2 py-4 space-y-4">
@@ -236,6 +237,11 @@
     @success="handleSuccess"
   />
 
+  <RentalItemViewModel
+    :selectedItem="selectedItemForView"
+    v-model:open="isViewModalOpen"
+  />
+
   <!-- Delete Confirmation Modal -->
   <TransitionRoot as="template" :show="isDeleteModalOpen">
     <Dialog class="relative z-10" @close="isDeleteModalOpen = false">
@@ -347,6 +353,7 @@ import Footer from "@/Components/custom/Footer.vue";
 import Banner from "@/Components/Banner.vue";
 import RentalItemCreateModel from "@/Components/custom/RentalItemCreateModel.vue";
 import RentalItemUpdateModel from "@/Components/custom/RentalItemUpdateModel.vue";
+import RentalItemViewModel from "@/Components/custom/RentalItemViewModel.vue";
 import { HasRole } from "@/Utils/Permissions";
 import {
   Dialog,
@@ -360,8 +367,10 @@ const isCreateModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const isSuccessModalOpen = ref(false);
+const isViewModalOpen = ref(false);
 const successMessage = ref("");
 const selectedItem = ref(null);
+const selectedItemForView = ref(null);
 
 const props = defineProps({
   rentalItems: Object,
@@ -373,6 +382,11 @@ const props = defineProps({
 const openEditModal = (item) => {
   selectedItem.value = item;
   isEditModalOpen.value = true;
+};
+
+const openViewModal = (item) => {
+  selectedItemForView.value = item;
+  isViewModalOpen.value = true;
 };
 
 const handleSuccess = (message) => {
