@@ -174,40 +174,7 @@
       </div>
     </div>
 
-    <!-- Charts -->
-    <div class="flex md:flex-row flex-col items-center justify-center w-full h-full md:space-x-4 md:space-y-0 space-y-4">
-      <div class="flex flex-col justify-between items-center md:w-1/3 w-full bg-white border-4 border-black rounded-xl h-[450px]">
-        <div class="chart-container w-full p-4">
-          <div class="w-full flex justify-between items-center pb-8">
-            <h2 class="text-2xl font-medium tracking-wide text-slate-700 text-left">Top Employee Sales</h2>
-            <button @click="downloadPDF" class="w-full mt-6 px-4 py-2 text-md font-normal tracking-wider text-white bg-orange-600 rounded-lg custom-select hover:bg-orange-700 hover:shadow-lg">Download PDF</button>
-          </div>
-          <div class="w-full h-full flex justify-center items-center">
-            <Doughnut :data="chartData4" :options="chartOptions4" />
-          </div>
-        </div>
-      </div>
-
-      <div class="flex flex-col justify-between items-center md:w-1/3 w-full bg-white border-4 border-black rounded-xl h-[450px]">
-        <div class="chart-container w-full p-4">
-          <div class="w-full flex justify-between items-center md:pt-12">
-            <h2 class="text-2xl font-medium tracking-wide text-slate-700 text-left">Product</h2>
-            <button @click="downloadPDF2" class="w-full mt-6 px-4 py-2 text-md font-normal tracking-wider text-white bg-orange-600 rounded-lg custom-select hover:bg-orange-700 hover:shadow-lg">Download PDF</button>
-          </div>
-          <Pie :data="chartData" :options="chartOptions" />
-        </div>
-      </div>
-
-      <div class="flex flex-col justify-between items-center md:w-1/3 w-full bg-white border-4 border-black rounded-xl h-[450px]">
-        <div class="chart-container w-full p-4">
-          <div class="w-full flex justify-between items-center md:pt-12">
-            <h2 class="text-2xl font-medium tracking-wide text-slate-700 text-left">Top Sales By Payment Method</h2>
-            <button @click="downloadPDF3" class="w-full mt-6 px-4 py-2 text-md font-normal tracking-wider text-white bg-orange-600 rounded-lg custom-select hover:bg-orange-700 hover:shadow-lg">Download PDF</button>
-          </div>
-          <Doughnut :data="chartData1" :options="chartOptions1" />
-        </div>
-      </div>
-    </div>
+    <!-- Charts removed per request -->
 
     <!-- Sales Table -->
     <div class="w-full bg-white border-4 border-black rounded-xl p-6">
@@ -485,25 +452,13 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { Doughnut, Pie } from "vue-chartjs";
 import { Link, router, Head } from "@inertiajs/vue3";
 import Header from "@/Components/custom/Header.vue";
 import Footer from "@/Components/custom/Footer.vue";
 import Banner from "@/Components/Banner.vue";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-} from "chart.js";
-
-ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, BarElement);
+// Charts removed per request
 
 // Props expected from controller (updated names)
 const props = defineProps({
@@ -577,56 +532,7 @@ const filterData = () => {
 };
 
 // ===== Charts data =====
-const sortDescending = (data) =>
-  Object.entries(data).sort((a, b) => b[1] - a[1]).reduce((acc, [k, v]) => ((acc[k] = v), acc), {});
-
-const productQuantities = computed(() => {
-  const quantities = {};
-  props.sales.forEach((sale) => {
-    sale.sale_items.forEach((item) => {
-      const name = item.product && item.product.name ? item.product.name : "N/A";
-      quantities[name] = (quantities[name] || 0) + item.quantity;
-    });
-  });
-  return sortDescending(quantities);
-});
-
-const chartData = computed(() => ({
-  labels: Object.keys(productQuantities.value),
-  datasets: [{ data: Object.values(productQuantities.value),
-    backgroundColor: ["#FF6384","#36A2EB","#FFCE56","#4BC0C0","#9966FF","#28a745","#ffc107","#17a2b8","#e83e8c","#fd7e14","#6610f2","#6f42c1","#dc3545","#adb5bd","#20c997","#ffc93c","#6a0572","#8ac926","#ff595e","#198754"] }],
-}));
-const chartOptions = { responsive: true, plugins: { legend: { display: true, position: "bottom" } } };
-
-const paymentMethodTotals = computed(() => {
-  const totals = {};
-  props.sales.forEach((s) => {
-    const m = s.payment_method;
-    totals[m] = (totals[m] || 0) + parseFloat(s.total_amount);
-  });
-  return sortDescending(totals);
-});
-const chartData1 = computed(() => ({
-  labels: Object.keys(paymentMethodTotals.value),
-  datasets: [{ data: Object.values(paymentMethodTotals.value),
-    backgroundColor: ["#FF6384","#36A2EB","#FFCE56","#4BC0C0","#9966FF","#28a745","#ffc107","#17a2b8","#e83e8c","#fd7e14","#6610f2","#6f42c1","#dc3545","#adb5bd","#20c997","#ffc93c","#6a0572","#8ac926","#ff595e","#198754"] }],
-}));
-const chartOptions1 = {
-  responsive: true,
-  plugins: { legend: { display: true, position: "bottom" },
-    tooltip: { callbacks: { label: (c) => `LKR ${(+c.raw || 0).toLocaleString()}` } } },
-};
-
-const sortedEmployeeSales = computed(() =>
-  Object.fromEntries(Object.entries(props.employeeSalesSummary).sort(([, a], [, b]) => b["Total Sales Amount"] - a["Total Sales Amount"]))
-);
-const chartData4 = computed(() => ({
-  labels: Object.keys(sortedEmployeeSales.value),
-  datasets: [{ data: Object.values(sortedEmployeeSales.value).map((e) => e["Total Sales Amount"]),
-    backgroundColor: ["#6610f2","#36A2EB","#8ac926","#ff595e","#198754","#6f42c1","#dc3545","#adb5bd","#20c997","#28a745","#ffc107","#17a2b8","#e83e8c","#fd7e14","#FF6384","#FFCE56","#4BC0C0","#9966FF","#ffc93c"] }],
-}));
-const chartOptions4 = { responsive: true, plugins: { legend: { display: true, position: "bottom" },
-  tooltip: { callbacks: { label: (c) => `LKR ${(+c.raw).toLocaleString()}` } } } };
+// Chart data removed per request
 
 // ===== Sales Table helpers & totals (respect custom_discount_type) =====
 const itemsCount = (s) => (Array.isArray(s.sale_items) ? s.sale_items.length : 0);
@@ -763,29 +669,6 @@ const saleProfit = (s) => {
   return net - cost;                        // Profit (LKR)
 };
 
-
-// ===== Chart PDFs =====
-const downloadPDF = () => {
-  const doc = new jsPDF();
-  doc.text("Top Employee Sales", 14, 10);
-  const rows = Object.entries(sortedEmployeeSales.value).map(([employee, entry]) => [employee, entry["Total Sales Amount"]]);
-  doc.autoTable({ head: [["Employee", "Total Sales Amount"]], body: rows, startY: 20 });
-  doc.save("EmployeeSales.pdf");
-};
-const downloadPDF2 = () => {
-  const doc = new jsPDF();
-  doc.text("Product Quantities", 14, 10);
-  const rows = Object.entries(productQuantities.value).map(([product, qty]) => [product, qty]);
-  doc.autoTable({ head: [["Product Name", "Quantity"]], body: rows, startY: 20 });
-  doc.save("ProductQuantities.pdf");
-};
-const downloadPDF3 = () => {
-  const doc = new jsPDF();
-  doc.text("Payment Method Totals", 14, 10);
-  const rows = Object.entries(paymentMethodTotals.value).map(([m, t]) => [m, `LKR ${t.toLocaleString()}`]);
-  doc.autoTable({ head: [["Payment Method", "Total Amount"]], body: rows, startY: 20 });
-  doc.save("PaymentMethodTotals.pdf");
-};
 
  // ===== Sales table PDF (matches rendered table exactly) =====
 const downloadSalesTablePDF = () => {

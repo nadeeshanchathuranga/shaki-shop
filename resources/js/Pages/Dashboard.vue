@@ -262,6 +262,26 @@
         </div>
       </Link>
 
+      <Link href="/expenses" v-if="HasRole(['Admin'])">
+        <div class="dashboard-card bg-[#7C3AED]">
+          <div class="card-content">
+            <div class="icon-container">
+              <img
+                src="/images/dashboard/expenses.png"
+                class="icon"
+                alt="Expenses"
+              />
+            </div>
+            <div class="text-container">
+              <p class="title">Expenses</p>
+              <p class="description">
+                Track business expenses and keep spending under control with clear, organized records.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Link>
+
       <Link href="/transactionHistory" v-if="HasRole(['Admin'])">
         <div class="dashboard-card bg-[#FFBF00]">
           <div class="card-content">

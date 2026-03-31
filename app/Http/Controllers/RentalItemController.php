@@ -27,10 +27,7 @@ class RentalItemController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(8);
 
-        $categories = Category::with('parent')->get()->map(function ($category) {
-            $category->hierarchy_string = $category->hierarchy_string;
-            return $category;
-        });
+        $categories = Category::with('parent')->get();
 
         $colors = Color::orderBy('created_at', 'desc')->get();
         $suppliers = Supplier::orderBy('created_at', 'desc')->get();

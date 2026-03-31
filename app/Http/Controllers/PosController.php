@@ -28,10 +28,7 @@ class PosController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $allcategories = Category::with('parent')->get()->map(function ($category) {
-            $category->hierarchy_string = $category->hierarchy_string; // Access it
-            return $category;
-        });
+        $allcategories = Category::with('parent')->get();
         $colors = Color::orderBy('created_at', 'desc')->get();
         $sizes = Size::orderBy('created_at', 'desc')->get();
         $allemployee = Employee::orderBy('created_at', 'desc')->get();
@@ -264,11 +261,15 @@ class PosController extends Controller
                         ], 423);
                     }
 
-                    if ($productModel->expire_date && now()->greaterThan($productModel->expire_date)) {
+                    $expireDate = $productModel->expire_date
+                        ? \Carbon\Carbon::parse($productModel->expire_date)
+                        : null;
+
+                    if ($expireDate && now()->greaterThan($expireDate)) {
                         // Rollback transaction and return error
                         DB::rollBack();
                         return response()->json([
-                            'message' => "The product '{$productModel->name}' has expired (Expiration Date: {$productModel->expire_date->format('Y-m-d')}).",
+                            'message' => "The product '{$productModel->name}' has expired (Expiration Date: {$expireDate->format('Y-m-d')}).",
                         ], 423); // HTTP 422 Unprocessable Entity
                     }
 
