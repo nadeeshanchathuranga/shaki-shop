@@ -429,20 +429,29 @@ const updateCommissionTypeSupplier = (type) => {
   form.commission_type_supplier = type;
 };
 
+const isSubmitting = ref(false);
+
 const handleImageUpload = (event) => {
   form.image = event.target.files[0];
 };
 
 const submit = () => {
+  if (isSubmitting.value) return; // Prevent double submission
+  isSubmitting.value = true;
+  
   form.post("/rental-items", {
-    preserveScroll: true,
+    preserveScroll: false, // Allow scroll to top on redirect
+    preserveState: false,  // Ensure fresh page state
     onSuccess: () => {
-      emit("success", "Rental item created successfully!");
+      // Reset form and close modal on successful redirect
       form.reset();
+      emit("success", "Rental item created successfully!");
       emit("update:open", false);
+      isSubmitting.value = false;
     },
     onError: (errors) => {
       console.error("Form submission failed:", errors);
+      isSubmitting.value = false;
     },
   });
 };

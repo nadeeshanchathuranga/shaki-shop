@@ -103,9 +103,10 @@ class RentalItemController extends Controller
             // Always generate and save a barcode for new rental items.
             $validated['barcode'] = $this->generateUniqueRentalBarcode();
 
-            RentalItem::create($validated);
+            $rentalItem = RentalItem::create($validated);
 
-            return redirect()->route('rental-items.index')->banner('Rental item created successfully');
+            return redirect()->route('rental-items.index')
+                ->banner('Rental item created successfully');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error creating rental item: ' . $e->getMessage());
             return redirect()->back()->with('error', 'An error occurred while creating the rental item. Please try again.');

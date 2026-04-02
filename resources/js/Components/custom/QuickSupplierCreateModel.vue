@@ -1,35 +1,14 @@
 <template>
-  <TransitionRoot as="template" :show="open">
-    <Dialog class="relative z-20" @close="$emit('update:open', false)">
-      <!-- Modal Overlay -->
-      <TransitionChild
-        as="template"
-        enter="ease-out duration-300"
-        enter-from="opacity-0"
-        enter-to="opacity-100"
-        leave="ease-in duration-200"
-        leave-from="opacity-100"
-        leave-to="opacity-0"
-      >
-        <div
-          class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-        />
-      </TransitionChild>
-
-      <!-- Modal Content -->
-      <div class="fixed inset-0 z-20 flex items-center justify-center">
-        <TransitionChild
-          as="template"
-          enter="ease-out duration-300"
-          enter-from="opacity-0 scale-95"
-          enter-to="opacity-100 scale-100"
-          leave="ease-in duration-200"
-          leave-from="opacity-100 scale-100"
-          leave-to="opacity-0 scale-95"
-        >
-          <DialogPanel
-            class="bg-black border-4 border-blue-600 rounded-[20px] shadow-xl w-5/6 lg:w-2/5 p-10 text-center"
-          >
+  <div v-if="open" class="fixed inset-0 z-[1000]">
+    <div
+      class="fixed inset-0 bg-gray-500 bg-opacity-75"
+      @click="handleClose"
+    ></div>
+    <div
+      class="fixed inset-0 z-[1001] flex items-center justify-center p-4"
+      @click.stop
+    >
+      <div class="bg-black border-4 border-blue-600 rounded-[20px] shadow-xl w-full max-w-lg p-10 text-center">
             <!-- Modal Title -->
             <DialogTitle class="text-2xl font-bold text-white">
               Add New Supplier
@@ -92,21 +71,13 @@
                 </button>
               </div>
             </form>
-          </DialogPanel>
-        </TransitionChild>
       </div>
-    </Dialog>
-  </TransitionRoot>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  TransitionChild,
-  TransitionRoot,
-} from "@headlessui/vue";
+import { DialogTitle } from "@headlessui/vue";
 import { useForm } from "@inertiajs/vue3";
 import { ref } from "vue";
 
@@ -129,6 +100,10 @@ const form = useForm({
   name: "",
   email: "",
 });
+
+const handleClose = () => {
+  emit("update:open", false);
+};
 
 const submit = async () => {
   errors.value = {}; // Clear previous errors
@@ -154,7 +129,7 @@ const submit = async () => {
       const data = await response.json();
       emit("supplier-created", data.supplier);
       form.reset();
-      emit("update:open", false);
+      handleClose();
     } else {
       const errorData = await response.json();
       if (errorData.errors) {

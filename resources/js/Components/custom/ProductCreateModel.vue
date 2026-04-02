@@ -1,6 +1,6 @@
 <template>
   <TransitionRoot as="template" :show="open">
-    <Dialog class="relative z-10" @close="$emit('update:open', false)">
+    <Dialog class="relative z-10" @close="handleProductDialogClose">
       <!-- Modal Overlay -->
       <TransitionChild
         as="template"
@@ -40,25 +40,29 @@
               <!-- Single Column with Buttons -->
               <div class="p-4 rounded-lg text-center">
                 <button
+                  type="button"
                   @click="openDialog('size')"
                   class="px-8 py-3 text-white bg-blue-600 rounded hover:bg-blue-700 text-lg font-medium mx-4"
                 >
                   Add Size
                 </button>
                 <button
+                  type="button"
                   @click="openDialog('color')"
                   class="px-8 py-3 text-white bg-green-600 rounded hover:bg-green-700 text-lg font-medium mx-4"
                 >
                   Add Color
                 </button>
                 <button
+                  type="button"
                   @click="openDialog('category')"
                   class="px-8 py-3 text-white bg-purple-600 rounded hover:bg-purple-700 before: text-lg font-medium mx-4"
                 >
                   Add Category
                 </button>
                 <button
-                  @click="isQuickSupplierOpen = true"
+                  type="button"
+                  @click="openDialog('supplier')"
                   class="px-8 py-3 text-white bg-orange-600 rounded hover:bg-orange-700 text-lg font-medium mx-4"
                 >
                   Add Supplier
@@ -229,6 +233,56 @@
                               </button>
                             </div>
                           </form>
+
+                            <form
+                              v-if="dialogType === 'supplier'"
+                              @submit.prevent="submitSupplier"
+                            >
+                              <label class="block text-md font-bold text-gray-700"
+                                >Supplier Name:</label
+                              >
+                              <input
+                                v-model="supplierForm.name"
+                                type="text"
+                                required
+                                class="w-full px-4 py-2 mt-2 text-black rounded-md focus:outline-none focus:ring focus:ring-orange-600"
+                              />
+                              <span
+                                v-if="supplierErrors.name"
+                                class="mt-2 text-red-500"
+                              >
+                                {{ supplierErrors.name[0] || supplierErrors.name }}
+                              </span>
+                              <label class="block text-md font-bold text-gray-700 mt-4"
+                                >Email (optional):</label
+                              >
+                              <input
+                                v-model="supplierForm.email"
+                                type="email"
+                                class="w-full px-4 py-2 mt-2 text-black rounded-md focus:outline-none focus:ring focus:ring-orange-600"
+                              />
+                              <span
+                                v-if="supplierErrors.email"
+                                class="mt-2 text-red-500"
+                              >
+                                {{ supplierErrors.email[0] || supplierErrors.email }}
+                              </span>
+                              <div class="mt-4">
+                                <button
+                                  type="submit"
+                                  class="px-4 py-2 text-white bg-orange-600 rounded hover:bg-orange-700"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  type="button"
+                                  @click="closeDialog"
+                                  class="px-4 py-2 text-gray-700 bg-gray-300 rounded hover:bg-gray-400 ml-2"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </form>
                         </div>
                       </div>
                     </DialogPanel>
@@ -281,7 +335,7 @@
                   >
                     <option value="">Select a Supplier</option>
                     <option
-                      v-for="supplier in suppliers"
+                      v-for="supplier in supplierList"
                       :key="supplier.id"
                       :value="supplier.id"
                     >
@@ -612,12 +666,6 @@
     </Dialog>
   </TransitionRoot>
 
-  <!-- Quick Supplier Creation Modal -->
-  <QuickSupplierCreateModel
-    :open="isQuickSupplierOpen"
-    @update:open="isQuickSupplierOpen = $event"
-    @supplier-created="handleSupplierCreated"
-  />
 </template>
  <script setup>
 import {
@@ -629,12 +677,10 @@ import {
 } from "@headlessui/vue";
 import { ref, computed, watch } from "vue";
 import { useForm } from "@inertiajs/vue3";
-import QuickSupplierCreateModel from "@/Components/custom/QuickSupplierCreateModel.vue";
 
 const emit = defineEmits(["update:open"]);
 
 const isPharma = computed(() => import.meta.env.VITE_APP_NAME === "pharma");
-const isQuickSupplierOpen = ref(false);
 
 // Define props
 const { open, categories, colors, suppliers, sizes, selectedProduct } =
@@ -688,6 +734,24 @@ const form = useForm({
 
 const isDialogOpen = ref(false);
 const dialogType = ref("size");
+
+const supplierList = ref([...suppliers]);
+
+watch(
+  () => suppliers,
+  (newSuppliers) => {
+    supplierList.value = [...newSuppliers];
+  },
+  { immediate: true }
+);
+
+const handleProductDialogClose = () => {
+  if (isDialogOpen.value) {
+    // Keep parent modal open while child modal is active
+    return;
+  }
+  emit("update:open", false);
+};
 
 // Form states for Size and Product
 const sizeForm = useForm({
@@ -765,12 +829,59 @@ const handleSupplierCreated = (newSupplier) => {
   // If a new supplier was created, add it to the list
   if (newSupplier && newSupplier.id) {
     // Push the new supplier to the list if not already present
-    const supplierExists = suppliers.some(s => s.id === newSupplier.id);
+    const supplierExists = supplierList.value.some((s) => s.id === newSupplier.id);
     if (!supplierExists) {
-      suppliers.push(newSupplier);
+      supplierList.value.push(newSupplier);
     }
     // Auto-select the new supplier
     form.supplier_id = newSupplier.id;
+  }
+};
+
+const supplierForm = useForm({
+  name: "",
+  email: "",
+});
+
+const supplierErrors = ref({});
+
+const submitSupplier = async () => {
+  supplierErrors.value = {}; // Clear previous errors
+  const formData = new FormData();
+  formData.append('name', supplierForm.name);
+  formData.append('email', supplierForm.email);
+
+  // Get CSRF token from meta tag
+  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+  try {
+    const response = await fetch('/suppliers', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRF-TOKEN': token,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.supplier) {
+        handleSupplierCreated(data.supplier);
+      }
+      supplierForm.reset();
+      successMessage.value = "Supplier created successfully!";
+      closeDialog();
+    } else {
+      const errorData = await response.json();
+      if (errorData.errors) {
+        supplierErrors.value = errorData.errors;
+      }
+    }
+  } catch (error) {
+    console.error('Error creating supplier:', error);
+    supplierErrors.value = { general: ['An error occurred while creating the supplier.'] };
   }
 };
 

@@ -85,7 +85,7 @@ class SupplierController extends Controller
     public function update(Request $request, Supplier $supplier)
     {
 
-        if (!Gate::allows('hasRole', ['Admin'])) {
+        if (!Gate::allows('hasRole', ['Admin', 'Manager'])) {
             abort(403, 'Unauthorized');
         }
         // Validate incoming data
