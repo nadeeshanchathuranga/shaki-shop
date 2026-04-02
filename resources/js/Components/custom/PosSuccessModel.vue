@@ -460,7 +460,7 @@ const productRows = props.products
           <div class="footer">
 
               <p>THANK YOU COME AGAIN</p>
-              <p>Exchange is possible within 7 days with the invoice</p>
+              <p>Exchange is possible within 3 days with the invoice</p>
 
                <p style="font-weight: bold;">Powered by JAAN Network Ltd.</p>
                <p>${new Date().toLocaleTimeString()} </p>
