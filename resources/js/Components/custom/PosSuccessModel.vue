@@ -298,8 +298,7 @@ const productRows = props.products
       <div class="receipt-container">
                 <div class="header">
    <img src="/images/billlogo.png" style="width: 150px; height: 65px;" />
-       <p>No 51/1/1,Mahabage road, Ragama</p>
-       <p>0756865900</p>
+             <p>No 51/1/1, Mahabage road, Ragama | 0756865900</p>
 
           </div>
 

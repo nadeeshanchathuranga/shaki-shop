@@ -1224,8 +1224,7 @@ const printBookingReceipt = (data) => {
         <div class="receipt-container">
             <div class="header">
                 <img src="/images/billlogo.png" style="width:230px;height:100px;" />
-                <p>No 51/1/1,Mahabage road, Ragama</p>
-                <p>0756865900</p>
+                <p>No 51/1/1, Mahabage road, Ragama | 0756865900</p>
                 <p style="font-weight:bold;font-size:14px;margin-top:8px;border:1px solid #000;display:inline-block;padding:2px 12px;">RENTAL BOOKING RECEIPT</p>
             </div>
             <div class="section">
