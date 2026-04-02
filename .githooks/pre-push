@@ -1,0 +1,17 @@
+#!/bin/bash
+# Pre-push hook to validate build before pushing
+# This prevents broken code from reaching remote branches
+
+echo "🔍 Pre-push validation: Running build check..."
+
+# Run build validation
+npm run build > /dev/null 2>&1
+
+if [ $? -ne 0 ]; then
+    echo "❌ Build failed! Fix errors before pushing."
+    echo "Run 'npm run build' locally to see detailed errors."
+    exit 1
+fi
+
+echo "✅ Build validation passed. Proceeding with push..."
+exit 0
