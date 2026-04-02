@@ -392,11 +392,15 @@ const openViewModal = (item) => {
 const handleSuccess = (message) => {
   successMessage.value = message;
   isSuccessModalOpen.value = true;
-  router.reload({
-    only: ["rentalItems"],
-    preserveScroll: true,
-    preserveState: false,
-  });
+  
+  // Use a small delay to ensure form submission completes before reloading
+  setTimeout(() => {
+    router.reload({
+      only: ["rentalItems"],
+      preserveScroll: true,
+      preserveState: false,
+    });
+  }, 500);
 };
 
 const openDeleteModal = (item) => {

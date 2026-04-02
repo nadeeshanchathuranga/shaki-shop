@@ -439,20 +439,53 @@ const submit = () => {
   if (isSubmitting.value) return; // Prevent double submission
   isSubmitting.value = true;
   
-  form.post("/rental-items", {
-    preserveScroll: false, // Allow scroll to top on redirect
-    preserveState: false,  // Ensure fresh page state
-    onSuccess: () => {
-      // Reset form and close modal on successful redirect
+  // Use fetch to prevent full page redirect issues with modal
+  const formData = new FormData();
+  
+  // Append all form fields
+  Object.keys(form.data()).forEach(key => {
+    const value = form[key];
+    if (value !== null && value !== undefined) {
+      if (key === 'image' && value instanceof File) {
+        formData.append(key, value);
+      } else if (!(value instanceof File)) {
+        formData.append(key, value);
+      }
+    }
+  });
+  
+  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  
+  fetch('/rental-items', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRF-TOKEN': token,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  })
+  .then(response => {
+    if (response.ok) {
+      // Success - emit event and let parent handle reload
       form.reset();
       emit("success", "Rental item created successfully!");
       emit("update:open", false);
       isSubmitting.value = false;
-    },
-    onError: (errors) => {
-      console.error("Form submission failed:", errors);
+    } else {
       isSubmitting.value = false;
-    },
+      return response.json().then(data => {
+        console.error("Validation errors:", data.errors);
+        if (data.errors) {
+          Object.keys(data.errors).forEach(field => {
+            form.errors[field] = data.errors[field];
+          });
+        }
+      });
+    }
+  })
+  .catch(error => {
+    console.error("Form submission failed:", error);
+    isSubmitting.value = false;
   });
 };
 
