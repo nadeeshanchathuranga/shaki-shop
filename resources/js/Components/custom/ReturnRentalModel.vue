@@ -375,6 +375,10 @@ const fetchPage = (url) => {
 
 const confirmReturn = async () => {
   if (returnBalance.value < 0) return;
+
+  // Open the print window immediately from the user click to avoid popup blocking on some browsers/devices.
+  const preOpenedPrintWindow = window.open("", "_blank");
+
   processing.value = true;
 
   try {
@@ -386,7 +390,7 @@ const confirmReturn = async () => {
     });
 
     // Print the final return receipt
-    printReturnReceipt(response.data);
+    printReturnReceipt(response.data, preOpenedPrintWindow);
 
     // Reset and close
     selectedSale.value = null;
@@ -394,6 +398,9 @@ const confirmReturn = async () => {
     searchQuery.value = "";
     fetchSales(); // Refresh the list
   } catch (error) {
+    if (preOpenedPrintWindow && !preOpenedPrintWindow.closed) {
+      preOpenedPrintWindow.close();
+    }
     console.error("Error processing return:", error);
     alert("Failed to process rental return. Please try again.");
   } finally {
@@ -401,7 +408,7 @@ const confirmReturn = async () => {
   }
 };
 
-const printReturnReceipt = (data) => {
+const printReturnReceipt = (data, openedWindow = null) => {
   const sale = data.sale;
   const rentalItems = (sale.sale_items || []).filter(i => i.rental_item_id);
 
@@ -447,9 +454,7 @@ const printReturnReceipt = (data) => {
       <div class="receipt-container">
           <div class="header">
               <img src="/images/billlogo.png" style="width: 230px; height: 100px;" />
-              ${companyInfo?.value?.name ? `<h1>${companyInfo.value.name}</h1>` : ''}
-              <p>No 51/1/1,Mahabage road, Ragama</p>
-              <p>0756865900</p>
+              <p>No 51/1/1, Mahabage road, Ragama | 0756865900</p>
               <p style="font-weight:bold; font-size:14px; margin-top:8px; border:1px solid #000; display:inline-block; padding:2px 12px;">RENTAL RETURN RECEIPT</p>
           </div>
 
@@ -560,18 +565,29 @@ const printReturnReceipt = (data) => {
   </html>
   `;
 
-  const printWindow = window.open("", "_blank");
+  const printWindow = openedWindow && !openedWindow.closed ? openedWindow : window.open("", "_blank");
   if (!printWindow) {
-    alert("Failed to open print window.");
+    alert("Failed to open print window. Please allow pop-ups and try again.");
     return;
   }
   printWindow.document.open();
   printWindow.document.write(receiptHTML);
   printWindow.document.close();
   printWindow.onload = () => {
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+    // Small delay helps ensure assets (like logo image) are rendered before printing.
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+
+      const closeWindow = () => {
+        if (!printWindow.closed) {
+          printWindow.close();
+        }
+      };
+
+      printWindow.onafterprint = closeWindow;
+      setTimeout(closeWindow, 1500);
+    }, 250);
   };
 };
 
