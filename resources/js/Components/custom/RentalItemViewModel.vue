@@ -90,7 +90,7 @@
                     <div class="flex flex-col w-full">
                       <p class="text-[#00000099]">Shop Commission:</p>
                       <p class="font-bold text-black">
-                        {{ selectedItem?.commission_percentage_shop }}% ({{ selectedItem?.commission_amount_shop }} LKR)
+                        {{ selectedItem?.commission_percentage_shop }}{{ selectedItem?.commission_type_shop === 'fixed' ? ' Rs' : '%' }} ({{ selectedItem?.commission_amount_shop }} LKR)
                       </p>
                     </div>
                   </div>
@@ -98,7 +98,7 @@
                   <!-- Supplier Commission -->
                   <p class="pb-8 text-2xl font-bold text-black">
                     <span class="text-[#00000099] font-normal">Supplier Commission: </span>
-                    {{ selectedItem?.commission_percentage_supplier }}% ({{ selectedItem?.commission_amount_supplier }} LKR)
+                    {{ selectedItem?.commission_percentage_supplier }}{{ selectedItem?.commission_type_supplier === 'fixed' ? ' Rs' : '%' }} ({{ selectedItem?.commission_amount_supplier }} LKR)
                   </p>
 
                   <!-- Created Date -->

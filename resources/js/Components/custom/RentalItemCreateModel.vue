@@ -30,7 +30,7 @@
             class="bg-black border-4 border-blue-600 rounded-[20px] shadow-xl w-5/6 lg:w-3/6 p-10 text-center max-h-[90vh] overflow-y-auto"
           >
             <DialogTitle class="text-xl font-bold text-white"
-              >Add Rental Item</DialogTitle
+              >Add Rental Item1</DialogTitle
             >
 
             <div class="mt-4 mb-6">

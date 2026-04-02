@@ -115,10 +115,10 @@
 
               <div class="flex justify-between items-center text-xs text-gray-400">
                 <div>
-                  <p>Shop Comm: {{ item.commission_percentage_shop }}% ({{ item.commission_amount_shop }})</p>
+                  <p>Shop Comm: {{ item.commission_percentage_shop }}{{ item.commission_type_shop === 'fixed' ? ' Rs' : '%' }} ({{ item.commission_amount_shop }})</p>
                 </div>
                 <div>
-                  <p>Supplier Comm: {{ item.commission_percentage_supplier }}% ({{ item.commission_amount_supplier }})</p>
+                  <p>Supplier Comm: {{ item.commission_percentage_supplier }}{{ item.commission_type_supplier === 'fixed' ? ' Rs' : '%' }} ({{ item.commission_amount_supplier }})</p>
                 </div>
               </div>
 

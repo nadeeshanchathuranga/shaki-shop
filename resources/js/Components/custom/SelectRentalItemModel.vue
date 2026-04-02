@@ -163,11 +163,11 @@
                         </div>
                         <div class="flex flex-col pt-2 border-t border-gray-700 text-xs">
                            <div class="flex justify-between">
-                              <span class="text-gray-400">Shop Comm (-{{item.commission_percentage_shop}}%):</span>
+                              <span class="text-gray-400">Shop Comm (-{{item.commission_percentage_shop}}{{item.commission_type_shop === 'fixed' ? ' Rs' : '%'}}):</span>
                               <span class="text-green-400">{{item.commission_amount_shop}} LKR</span>
                            </div>
                            <div class="flex justify-between">
-                              <span class="text-gray-400">Supplier Comm (-{{item.commission_percentage_supplier}}%):</span>
+                              <span class="text-gray-400">Supplier Comm (-{{item.commission_percentage_supplier}}{{item.commission_type_supplier === 'fixed' ? ' Rs' : '%'}}):</span>
                               <span class="text-green-400">{{item.commission_amount_supplier}} LKR</span>
                            </div>
                         </div>

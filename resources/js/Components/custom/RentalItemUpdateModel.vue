@@ -158,41 +158,107 @@
                 <!-- Row: Commission % Shop & Commission % Supplier -->
                 <div class="flex items-center gap-8">
                   <div class="w-full">
-                    <label class="block text-sm font-medium text-gray-300">Commission % for Shop per item:</label>
+                    <div class="flex items-center justify-between mb-2">
+                      <label class="block text-sm font-medium text-gray-300"
+                        >Commission for Shop per item:</label
+                      >
+                      <div class="flex gap-2">
+                        <button
+                          type="button"
+                          @click="updateCommissionTypeShop('fixed')"
+                          :class="[
+                            'px-3 py-1 text-xs font-semibold rounded',
+                            commissionTypeShop === 'fixed'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                          ]"
+                        >
+                          Rs
+                        </button>
+                        <button
+                          type="button"
+                          @click="updateCommissionTypeShop('percentage')"
+                          :class="[
+                            'px-3 py-1 text-xs font-semibold rounded',
+                            commissionTypeShop === 'percentage'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                          ]"
+                        >
+                          %
+                        </button>
+                      </div>
+                    </div>
                     <input
                       v-model="form.commission_percentage_shop"
                       type="number"
                       step="0.01"
                       required
                       min="0"
-                      max="100"
-                      placeholder="Enter Shop Commission %"
+                      :max="commissionTypeShop === 'percentage' ? '100' : undefined"
+                      :placeholder="commissionTypeShop === 'percentage' ? 'Enter Shop Commission %' : 'Enter Fixed Amount (Rs)'"
                       class="w-full px-4 py-2 mt-2 text-black rounded-md focus:outline-none focus:ring focus:ring-blue-600"
                     />
                     <span v-if="form.errors.commission_percentage_shop" class="mt-2 text-red-500">
                       {{ form.errors.commission_percentage_shop }}
                     </span>
-                    <p v-if="shopCommissionAmount !== null" class="mt-2 text-sm font-semibold text-green-400">
-                      Commission Amount: {{ shopCommissionAmount }}
+                    <p
+                      v-if="shopCommissionAmount !== null"
+                      class="mt-2 text-sm font-semibold text-green-400"
+                    >
+                      Final Amount: Rs {{ shopCommissionAmount }}
                     </p>
                   </div>
                   <div class="w-full">
-                    <label class="block text-sm font-medium text-gray-300">Commission % for Supplier per item:</label>
+                    <div class="flex items-center justify-between mb-2">
+                      <label class="block text-sm font-medium text-gray-300"
+                        >Commission for Supplier per item:</label
+                      >
+                      <div class="flex gap-2">
+                        <button
+                          type="button"
+                          @click="updateCommissionTypeSupplier('fixed')"
+                          :class="[
+                            'px-3 py-1 text-xs font-semibold rounded',
+                            commissionTypeSupplier === 'fixed'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                          ]"
+                        >
+                          Rs
+                        </button>
+                        <button
+                          type="button"
+                          @click="updateCommissionTypeSupplier('percentage')"
+                          :class="[
+                            'px-3 py-1 text-xs font-semibold rounded',
+                            commissionTypeSupplier === 'percentage'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                          ]"
+                        >
+                          %
+                        </button>
+                      </div>
+                    </div>
                     <input
                       v-model="form.commission_percentage_supplier"
                       type="number"
                       step="0.01"
                       required
                       min="0"
-                      max="100"
-                      placeholder="Enter Supplier Commission %"
+                      :max="commissionTypeSupplier === 'percentage' ? '100' : undefined"
+                      :placeholder="commissionTypeSupplier === 'percentage' ? 'Enter Supplier Commission %' : 'Enter Fixed Amount (Rs)'"
                       class="w-full px-4 py-2 mt-2 text-black rounded-md focus:outline-none focus:ring focus:ring-blue-600"
                     />
                     <span v-if="form.errors.commission_percentage_supplier" class="mt-2 text-red-500">
                       {{ form.errors.commission_percentage_supplier }}
                     </span>
-                    <p v-if="supplierCommissionAmount !== null" class="mt-2 text-sm font-semibold text-green-400">
-                      Commission Amount: {{ supplierCommissionAmount }}
+                    <p
+                      v-if="supplierCommissionAmount !== null"
+                      class="mt-2 text-sm font-semibold text-green-400"
+                    >
+                      Final Amount: Rs {{ supplierCommissionAmount }}
                     </p>
                   </div>
                 </div>
@@ -245,7 +311,7 @@ import {
   TransitionChild,
   TransitionRoot,
 } from "@headlessui/vue";
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useForm } from "@inertiajs/vue3";
 
 const emit = defineEmits(["update:open", "success"]);
@@ -269,8 +335,13 @@ const form = useForm({
   rent_price: null,
   commission_percentage_shop: null,
   commission_percentage_supplier: null,
+  commission_type_shop: "percentage",
+  commission_type_supplier: "percentage",
   image: null,
 });
+
+const commissionTypeShop = ref("percentage");
+const commissionTypeSupplier = ref("percentage");
 
 
 // Watch for changes in the selected item and populate the form
@@ -287,6 +358,10 @@ watch(
       form.rent_price = newItem.rent_price || null;
       form.commission_percentage_shop = newItem.commission_percentage_shop || null;
       form.commission_percentage_supplier = newItem.commission_percentage_supplier || null;
+      form.commission_type_shop = newItem.commission_type_shop || "percentage";
+      form.commission_type_supplier = newItem.commission_type_supplier || "percentage";
+      commissionTypeShop.value = newItem.commission_type_shop || "percentage";
+      commissionTypeSupplier.value = newItem.commission_type_supplier || "percentage";
       form.image = null; // Don't pre-fill file inputs
     }
   },
@@ -295,24 +370,44 @@ watch(
 
 // Computed commission amounts
 const shopCommissionAmount = computed(() => {
-  if (form.rent_price && form.commission_percentage_shop) {
-    return (
-      (parseFloat(form.rent_price) * parseFloat(form.commission_percentage_shop)) /
-      100
-    ).toFixed(2);
+  if (commissionTypeShop.value === "percentage") {
+    if (form.rent_price && form.commission_percentage_shop) {
+      return (
+        (parseFloat(form.rent_price) *
+          parseFloat(form.commission_percentage_shop)) /
+        100
+      ).toFixed(2);
+    }
+  } else {
+    return form.commission_percentage_shop ? parseFloat(form.commission_percentage_shop).toFixed(2) : null;
   }
   return null;
 });
 
 const supplierCommissionAmount = computed(() => {
-  if (form.rent_price && form.commission_percentage_supplier) {
-    return (
-      (parseFloat(form.rent_price) * parseFloat(form.commission_percentage_supplier)) /
-      100
-    ).toFixed(2);
+  if (commissionTypeSupplier.value === "percentage") {
+    if (form.rent_price && form.commission_percentage_supplier) {
+      return (
+        (parseFloat(form.rent_price) *
+          parseFloat(form.commission_percentage_supplier)) /
+        100
+      ).toFixed(2);
+    }
+  } else {
+    return form.commission_percentage_supplier ? parseFloat(form.commission_percentage_supplier).toFixed(2) : null;
   }
   return null;
 });
+
+const updateCommissionTypeShop = (type) => {
+  commissionTypeShop.value = type;
+  form.commission_type_shop = type;
+};
+
+const updateCommissionTypeSupplier = (type) => {
+  commissionTypeSupplier.value = type;
+  form.commission_type_supplier = type;
+};
 
 const handleImageUpload = (event) => {
   form.image = event.target.files[0];

@@ -104,6 +104,8 @@ class RentalItemController extends Controller
             // Create with retry in case a rare unique-barcode collision happens under concurrent requests.
             $rentalItem = null;
             $maxAttempts = 5;
+            // Always generate and save a barcode for new rental items.
+            $validated['barcode'] = $this->generateUniqueCode();
 
             for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
                 $validated['barcode'] = $this->generateUniqueRentalBarcode();
