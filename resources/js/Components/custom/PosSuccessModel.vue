@@ -294,11 +294,9 @@ const productRows = props.products
   <body>
       <div class="receipt-container">
                 <div class="header">
-   <img src="/images/billlogo.png" style="width: 230px; height: 100px;" />
-
-           ${companyInfo?.value?.name ? `<h1>${companyInfo.value.name}</h1>` : ''}
-           <p>No 51/1/1,Mahabage road, Ragama</p>
-           <p>0756865900</p>
+   <img src="/images/billlogo.png" style="width: 150px; height: 65px;" />
+       <p>No 51/1/1,Mahabage road, Ragama</p>
+       <p>0756865900</p>
 
           </div>
 

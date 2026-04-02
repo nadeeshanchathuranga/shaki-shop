@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use Carbon\Carbon;
+use App\Models\Expense;
 use App\Models\Product;
 use App\Models\Report;
 use App\Models\Sale;
@@ -61,6 +62,17 @@ class ReportController extends Controller
     // -------- Sales (filter by created_at) --------
     $salesQuery = Sale::with(['saleItems.product.category', 'employee', 'customer']);
 
+    // -------- Expenses (filter by expense date) --------
+    $expensesQuery = Expense::with('user');
+
+    if ($from && $to) {
+        $expensesQuery->whereBetween('date', [$from->toDateString(), $to->toDateString()]);
+    } elseif ($from) {
+        $expensesQuery->where('date', '>=', $from->toDateString());
+    } elseif ($to) {
+        $expensesQuery->where('date', '<=', $to->toDateString());
+    }
+
     if ($from || $to) {
         $applyCreatedWindow($salesQuery);
     }
@@ -84,6 +96,7 @@ class ReportController extends Controller
     });
 
     $sales = $salesQuery->orderBy('created_at', 'desc')->get();
+    $expenses = $expensesQuery->orderBy('date', 'desc')->get();
 
     // Helpers
     $customDiscountToLkr = function ($sale) {
@@ -128,6 +141,8 @@ class ReportController extends Controller
     $totalProductDiscountLkr = (float) $sales->sum('discount');
     $totalCustomDiscountLkr  = (float) $sales->reduce(fn($c, $s) => $c + $customDiscountToLkr($s), 0.0);
     $netProfit               = $totalSaleAmount - $totalCost - ($totalProductDiscountLkr + $totalCustomDiscountLkr);
+    $totalExpenseAmount      = (float) $expenses->sum('amount');
+    $netProfitAfterExpenses  = $netProfit - $totalExpenseAmount;
     $totalTransactions       = $sales->count();
     $averageTransactionValue = $totalTransactions > 0 ? ($totalSaleAmount / $totalTransactions) : 0;
     $totalBankFee            = (float) $sales->sum('bank_fee');
@@ -143,11 +158,14 @@ class ReportController extends Controller
     return Inertia::render('Reports/Index', [
         'products'                  => $products,
         'sales'                     => $sales,
+        'expenses'                  => $expenses,
 
         'totalSaleAmount'           => round($totalSaleAmount, 2),
         'totalDiscountLkr'          => round($totalProductDiscountLkr, 2),
         'totalCustomDiscountLkr'    => round($totalCustomDiscountLkr, 2),
         'netProfit'                 => round($netProfit, 2),
+        'totalExpenseAmount'        => round($totalExpenseAmount, 2),
+        'netProfitAfterExpenses'    => round($netProfitAfterExpenses, 2),
         'totalTransactions'         => $totalTransactions,
         'averageTransactionValue'   => round($averageTransactionValue, 2),
         'totalBankFee'              => round($totalBankFee, 2),

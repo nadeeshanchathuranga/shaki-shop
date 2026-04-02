@@ -19,6 +19,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\StockTransactionController;
 use App\Http\Controllers\TransactionHistoryController;
 use App\Http\Controllers\ManualPosController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\RentalItemController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -129,7 +130,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('return-bill', ReturnItemController::class);
 
-
+    Route::resource('expenses', ExpenseController::class);
 
 
     Route::post('/api/products', [ProductController::class, 'fetchProducts']);
