@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use App\Models\Product;
 use App\Models\RentalBooking;
 use App\Models\SaleItem;
 use App\Models\Supplier;
@@ -39,7 +37,11 @@ class SupplierController extends Controller
 
     public function store(Request $request)
     {
-        if (!Gate::allows('hasRole', ['Admin'])) {
+        if (!Gate::allows('hasRole', ['Admin', 'Manager'])) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
             abort(403, 'Unauthorized');
         }
 

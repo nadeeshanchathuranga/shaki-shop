@@ -387,6 +387,7 @@
     :sizes="sizes"
     :suppliers="suppliers"
     v-model:open="isCreateModalOpen"
+    @success="handleCreateSuccess"
   />
   <ProductUpdateModel
     :categories="allcategories"
@@ -465,6 +466,14 @@ const openViewModal = (product) => {
 const openDeleteModal = (product) => {
   selectedProduct.value = product;
   isDeleteModalOpen.value = true;
+};
+
+const handleCreateSuccess = () => {
+  router.reload({
+    only: ["products", "allcategories", "colors", "sizes", "suppliers", "totalProducts"],
+    preserveScroll: true,
+    preserveState: false,
+  });
 };
 
 const props = defineProps({

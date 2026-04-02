@@ -678,7 +678,7 @@ import {
 import { ref, computed, watch } from "vue";
 import { useForm } from "@inertiajs/vue3";
 
-const emit = defineEmits(["update:open"]);
+const emit = defineEmits(["update:open", "success"]);
 
 const isPharma = computed(() => import.meta.env.VITE_APP_NAME === "pharma");
 
@@ -811,18 +811,58 @@ const handleImageUpload = (event) => {
   form.image = event.target.files[0]; // Set the file to the form object
 };
 
+const isSubmitting = ref(false);
+
 const submit = () => {
-  form.post("/products", {
-    preserveScroll: true,
-    onSuccess: () => {
-      console.log("Product created successfully!");
-      form.reset(); // Reset form fields after successful submission
-      emit("update:open", false);
-    },
-    onError: (errors) => {
-      console.error("Form submission failed:", errors);
-    },
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
+
+  const formData = new FormData();
+
+  Object.keys(form.data()).forEach((key) => {
+    const value = form[key];
+    if (value !== null && value !== undefined) {
+      if (key === "image" && value instanceof File) {
+        formData.append(key, value);
+      } else if (!(value instanceof File)) {
+        formData.append(key, value);
+      }
+    }
   });
+
+  const token =
+    document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+
+  fetch("/products", {
+    method: "POST",
+    body: formData,
+    headers: {
+      "X-CSRF-TOKEN": token,
+      "X-Requested-With": "XMLHttpRequest",
+      Accept: "application/json",
+    },
+  })
+    .then(async (response) => {
+      const payload = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        form.reset();
+        emit("success", payload.message || "Product created successfully!");
+        emit("update:open", false);
+      } else {
+        if (payload.errors) {
+          Object.keys(payload.errors).forEach((field) => {
+            form.errors[field] = payload.errors[field][0] ?? payload.errors[field];
+          });
+        }
+      }
+    })
+    .catch((error) => {
+      console.error("Form submission failed:", error);
+    })
+    .finally(() => {
+      isSubmitting.value = false;
+    });
 };
 
 const handleSupplierCreated = (newSupplier) => {

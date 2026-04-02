@@ -10,9 +10,9 @@
     >
       <div class="bg-black border-4 border-blue-600 rounded-[20px] shadow-xl w-full max-w-lg p-10 text-center">
             <!-- Modal Title -->
-            <DialogTitle class="text-2xl font-bold text-white">
+            <h2 class="text-2xl font-bold text-white">
               Add New Supplier
-            </DialogTitle>
+            </h2>
 
             <form @submit.prevent="submit" class="mt-6 space-y-6 text-left">
               <!-- Supplier Name -->
@@ -48,11 +48,16 @@
                 </span>
               </div>
 
+              <p v-if="errors.general" class="text-red-500 text-sm">
+                {{ errors.general[0] }}
+              </p>
+
               <!-- Modal Buttons -->
               <div class="mt-8 flex gap-4 justify-center">
                 <button
                   @click="playClickSound"
                   class="px-6 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 font-semibold"
+                  :disabled="isSubmitting"
                   type="submit"
                 >
                   Save Supplier
@@ -77,12 +82,12 @@
 </template>
 
 <script setup>
-import { DialogTitle } from "@headlessui/vue";
 import { useForm } from "@inertiajs/vue3";
 import { ref } from "vue";
 
 const emit = defineEmits(["update:open", "supplier-created"]);
 const errors = ref({});
+const isSubmitting = ref(false);
 
 const playClickSound = () => {
   const clickSound = new Audio("/sounds/click-sound.mp3");
@@ -102,10 +107,13 @@ const form = useForm({
 });
 
 const handleClose = () => {
+  errors.value = {};
   emit("update:open", false);
 };
 
 const submit = async () => {
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
   errors.value = {}; // Clear previous errors
   const formData = new FormData();
   formData.append('name', form.name);
@@ -125,19 +133,26 @@ const submit = async () => {
       },
     });
 
+    const data = await response.json().catch(() => ({}));
+
     if (response.ok) {
-      const data = await response.json();
-      emit("supplier-created", data.supplier);
+      if (data.supplier) {
+        emit("supplier-created", data.supplier);
+      }
       form.reset();
       handleClose();
     } else {
-      const errorData = await response.json();
-      if (errorData.errors) {
-        errors.value = errorData.errors;
+      if (data.errors) {
+        errors.value = data.errors;
+      } else {
+        errors.value = { general: [data.message || 'Failed to create supplier.'] };
       }
     }
   } catch (error) {
     console.error('Error creating supplier:', error);
+    errors.value = { general: ['An unexpected error occurred while creating the supplier.'] };
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>

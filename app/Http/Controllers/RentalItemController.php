@@ -105,10 +105,24 @@ class RentalItemController extends Controller
 
             $rentalItem = RentalItem::create($validated);
 
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'rental_item' => $rentalItem->load('category', 'color', 'supplier'),
+                    'message' => 'Rental item created successfully',
+                ], 201);
+            }
+
             return redirect()->route('rental-items.index')
                 ->banner('Rental item created successfully');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error creating rental item: ' . $e->getMessage());
+
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'An error occurred while creating the rental item. Please try again.',
+                ], 500);
+            }
+
             return redirect()->back()->with('error', 'An error occurred while creating the rental item. Please try again.');
         }
     }
