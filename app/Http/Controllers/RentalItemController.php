@@ -9,6 +9,7 @@ use App\Models\RentalBooking;
 use App\Models\Sale;
 use App\Models\Supplier;
 use App\Traits\GeneratesUniqueCode;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -100,10 +101,25 @@ class RentalItemController extends Controller
                 $validated['image'] = 'storage/' . $path;
             }
 
-            // Always generate and save a barcode for new rental items.
-            $validated['barcode'] = $this->generateUniqueRentalBarcode();
+            // Create with retry in case a rare unique-barcode collision happens under concurrent requests.
+            $rentalItem = null;
+            $maxAttempts = 5;
 
-            $rentalItem = RentalItem::create($validated);
+            for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+                $validated['barcode'] = $this->generateUniqueRentalBarcode();
+
+                try {
+                    $rentalItem = RentalItem::create($validated);
+                    break;
+                } catch (QueryException $queryException) {
+                    $isDuplicateBarcode = ($queryException->getCode() === '23000')
+                        && str_contains(strtolower($queryException->getMessage()), 'barcode');
+
+                    if (!$isDuplicateBarcode || $attempt === $maxAttempts) {
+                        throw $queryException;
+                    }
+                }
+            }
 
             if ($request->expectsJson() || $request->wantsJson()) {
                 return response()->json([
@@ -115,7 +131,11 @@ class RentalItemController extends Controller
             return redirect()->route('rental-items.index')
                 ->banner('Rental item created successfully');
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error creating rental item: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Error creating rental item', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->except(['image']),
+            ]);
 
             if ($request->expectsJson() || $request->wantsJson()) {
                 return response()->json([
@@ -408,7 +428,7 @@ class RentalItemController extends Controller
     private function generateUniqueRentalBarcode(): string
     {
         do {
-            $barcode = $this->generateUniqueCode(8);
+            $barcode = now()->format('ymdHisv') . random_int(10, 99);
         } while (RentalItem::where('barcode', $barcode)->exists());
 
         return $barcode;
