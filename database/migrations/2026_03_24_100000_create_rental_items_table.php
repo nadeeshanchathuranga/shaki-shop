@@ -20,9 +20,9 @@ return new class extends Migration
             $table->string('customer_name')->nullable();
             $table->integer('rental_quantity')->default(0);
             $table->decimal('rent_price', 10, 2)->default(0);
-            $table->decimal('commission_percentage_shop', 5, 2)->default(0);
+            $table->decimal('commission_percentage_shop', 10, 2)->default(0);
             $table->decimal('commission_amount_shop', 10, 2)->default(0);
-            $table->decimal('commission_percentage_supplier', 5, 2)->default(0);
+            $table->decimal('commission_percentage_supplier', 10, 2)->default(0);
             $table->decimal('commission_amount_supplier', 10, 2)->default(0);
             $table->string('image')->nullable();
             $table->timestamps();

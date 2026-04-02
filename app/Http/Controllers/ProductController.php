@@ -257,11 +257,24 @@ $productsQuery = Product::with('category', 'color', 'size', 'supplier')
                 ]);
             }
 
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'product' => $product->load('category', 'color', 'size', 'supplier'),
+                    'message' => 'Product created successfully',
+                ], 201);
+            }
+
             // Redirect with success message
             return redirect()->route('products.index')->banner('Product created successfully');
         } catch (\Exception $e) {
             // Log error and redirect back with an error message
             \Log::error('Error creating product: ' . $e->getMessage());
+
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'An error occurred while creating the product. Please try again.',
+                ], 500);
+            }
 
             return redirect()->back()->with('error', 'An error occurred while creating the product. Please try again.');
         }

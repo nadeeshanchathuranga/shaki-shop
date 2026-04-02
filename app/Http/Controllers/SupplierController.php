@@ -39,7 +39,11 @@ class SupplierController extends Controller
 
     public function store(Request $request)
     {
-        if (!Gate::allows('hasRole', ['Admin'])) {
+        if (!Gate::allows('hasRole', ['Admin', 'Manager'])) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
             abort(403, 'Unauthorized');
         }
 
