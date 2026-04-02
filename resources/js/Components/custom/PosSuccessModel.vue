@@ -227,15 +227,15 @@ const productRows = props.products
               margin: 4px 0;
           }
           .section {
-              margin-bottom: 16px;
-              padding-top: 8px;
+              margin-bottom: 8px;
+              padding-top: 3px;
               border-top: 1px solid #000;
           }
           .info-row {
               display: flex;
               justify-content: space-between;
               font-size: 14px;
-              margin-top: 8px;
+              margin-top: 6px;
           }
           .info-row p {
               margin: 0;
@@ -248,7 +248,7 @@ const productRows = props.products
               width: 100%;
               font-size: 12px;
               border-collapse: collapse;
-              margin-top: 8px;
+              margin-top: 2px;
           }
           table th, table td {
               padding: 6px 8px;
@@ -276,6 +276,9 @@ const productRows = props.products
           .totals div:nth-child(4) {
               font-size: 14px;
               font-weight: bold;
+          }
+          .rental-period-row {
+              font-size: 10px;
           }
           .footer {
               text-align: center;
@@ -377,7 +380,7 @@ const productRows = props.products
                   </span>
               </div>
               ${props.hasRentalItems && props.rentalMode === 'rent_now' ? `
-              <div>
+              <div class="rental-period-row">
                   <span>Rental Period</span>
                   <span>${props.rentalDateFrom || 'N/A'} to ${props.rentalDateTo || 'N/A'}</span>
               </div>
@@ -407,7 +410,7 @@ const productRows = props.products
                   <span style="margin:1px 0; display:block;">★ අත්තිකාරම් මුදලක් ගෙවා භාරගත් අයිතමය ගනුදෙනුව හදිසියේ අවසන් කර භාරදෙන්නේ නම්, කිසිම හේතුවක් මත අත්තිකාරම් මුදල ආපසු ගෙවනු නොලැබේ.</span>
               </div>
               ` : props.hasRentalItems && props.isBookedImport ? `
-              <div>
+              <div class="rental-period-row">
                   <span>Rental Period</span>
                   <span>${props.rentalDateFrom || 'N/A'} to ${props.rentalDateTo || 'N/A'}</span>
               </div>
