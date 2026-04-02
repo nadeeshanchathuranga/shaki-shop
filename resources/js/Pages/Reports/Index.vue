@@ -109,39 +109,46 @@
 
 
 <!-- KPI Cards (use the same totals the table uses) -->
-<div class="grid w-full md:grid-cols-6 grid-cols-3 gap-4 mb-4">
-  <div class="py-6 flex flex-col justify-center items-center border-2 border-[#EC6116] w-full space-y-4 rounded-2xl bg-[#EC611666] shadow-lg hover:-translate-y-1 transition">
-    <div class="flex flex-col items-center justify-center">
-      <h2 class="text-xl font-extrabold tracking-wide text-black uppercase">Total Sales</h2>
-      <h2 class="text-xl font-extrabold tracking-wide text-black uppercase">Amount</h2>
-    </div>
-    <p class="text-2xl font-bold text-black">     {{ salesGrossTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) }} LKR </p>
+<div class="grid w-full xl:grid-cols-8 md:grid-cols-4 grid-cols-2 gap-4 mb-4 items-stretch">
+  <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#EC6116] w-full rounded-2xl bg-[#EC611666] shadow-lg hover:-translate-y-1 transition">
+    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Total Sales Amount</h2>
+    <p class="text-2xl font-bold text-black">{{ salesGrossTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) }} LKR</p>
   </div>
 
-  <div class="py-6 flex flex-col justify-center items-center border-2 border-[#488D3F] w-full space-y-8 rounded-2xl bg-[#488D3F66] shadow-lg hover:-translate-y-1 transition">
-    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase">Net Profit</h2>
+  <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#488D3F] w-full rounded-2xl bg-[#488D3F66] shadow-lg hover:-translate-y-1 transition">
+    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Net Profit</h2>
     <p class="text-2xl font-bold text-black">{{ toMoney(salesProfitTotal) }} LKR</p>
   </div>
 
-  <div class="py-6 flex flex-col justify-center items-center border-2 border-[#16D0EC] w-full space-y-4 rounded-2xl bg-[#16D0EC66] shadow-lg hover:-translate-y-1 transition">
-    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase">Total Discount</h2>
+  <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#16D0EC] w-full rounded-2xl bg-[#16D0EC66] shadow-lg hover:-translate-y-1 transition">
+    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Total Discount</h2>
     <p class="text-2xl font-bold text-black">{{ toMoney(salesDiscountTotal) }} LKR</p>
   </div>
 
-  <div class="py-6 flex flex-col justify-center items-center border-2 border-[#FF9F1C] w-full space-y-4 rounded-2xl bg-[#FF9F1C66] shadow-lg hover:-translate-y-1 transition">
-    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase">Card Fees</h2>
+  <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#FF9F1C] w-full rounded-2xl bg-[#FF9F1C66] shadow-lg hover:-translate-y-1 transition">
+    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Card Fees</h2>
     <p class="text-2xl font-bold text-black">{{ toMoney(totalBankFee) }} LKR</p>
   </div>
 
+  <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#d97706] w-full rounded-2xl bg-[#f59e0b66] shadow-lg hover:-translate-y-1 transition">
+    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Total Expenses</h2>
+    <p class="text-2xl font-bold text-black">{{ toMoney(totalExpenseAmount) }} LKR</p>
+  </div>
+
+  <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#0f766e] w-full rounded-2xl bg-[#14b8a666] shadow-lg hover:-translate-y-1 transition">
+    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Profit After Expenses</h2>
+    <p class="text-2xl font-bold text-black">{{ toMoney(netProfitAfterExpenses) }} LKR</p>
+  </div>
 
 
-  <div class="py-6 flex flex-col justify-center items-center border-2 border-[#9E16EC] w-full space-y-4 rounded-2xl bg-[#9E16EC66] shadow-lg hover:-translate-y-1 transition">
-    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase">Number of Transactions</h2>
+
+  <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#9E16EC] w-full rounded-2xl bg-[#9E16EC66] shadow-lg hover:-translate-y-1 transition">
+    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Number of Transactions</h2>
     <p class="text-2xl font-bold text-black">{{ totalTransactions }}</p>
   </div>
 
-  <div class="py-6 flex flex-col justify-center items-center border-2 border-[#EC16D7] w-full space-y-4 rounded-2xl bg-[#EC16D766] shadow-lg hover:-translate-y-1 transition">
-    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase">Total Number of Customers</h2>
+  <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#EC16D7] w-full rounded-2xl bg-[#EC16D766] shadow-lg hover:-translate-y-1 transition">
+    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Total Number of Customers</h2>
     <p class="text-2xl font-bold text-black">{{ totalCustomer }}</p>
   </div>
 </div>
@@ -272,7 +279,8 @@
           <td class="p-3 num text-center">
   {{
     toMoney(
-      s.total_amount -
+      Number(s.total_amount || 0) -
+      Number(s.discount || 0) -
       (
         s.custom_discount_type === 'percent'
           ? (Number(s.total_amount || 0) * Number(s.custom_discount || 0) / 100)
@@ -432,6 +440,56 @@
       </div>
     </div>
 
+    <!-- Expenses Table -->
+    <div class="w-full bg-white border-4 border-black rounded-xl p-6">
+      <h2 class="text-2xl font-semibold text-slate-700 text-center pb-4">Expenses Table</h2>
+
+      <div class="flex justify-between items-center pb-4">
+        <button @click="downloadExpensesTablePDF"
+                class="px-4 py-2 text-md font-semibold text-white bg-orange-600 rounded-lg hover:bg-orange-700 shadow-md">
+          Download PDF
+        </button>
+
+        <div class="py-2 px-4 border-2 border-amber-600 rounded-xl bg-amber-100 shadow-sm text-center">
+          <p class="text-sm font-extrabold text-black uppercase">
+            Total Expenses:
+            <span class="text-base font-bold">{{ toMoney(totalExpenseAmount) }} LKR</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto overflow-y-auto max-h-[420px] border rounded-xl mt-2">
+        <table id="expenseTbl" class="w-full text-gray-800 bg-white border border-gray-300 rounded-lg shadow-md table-auto">
+          <thead class="sticky top-0 z-10">
+            <tr class="bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 text-white text-[14px] border-b border-amber-800">
+              <th class="p-3 text-left font-semibold">#</th>
+              <th class="p-3 text-left font-semibold">Date</th>
+              <th class="p-3 text-left font-semibold">Reason</th>
+              <th class="p-3 text-left font-semibold">Added By</th>
+              <th class="p-3 text-right font-semibold">Amount (LKR)</th>
+            </tr>
+          </thead>
+
+          <tbody class="text-[12px] font-medium">
+            <tr v-for="(e, i) in expenses" :key="e.id ?? i" class="border-b transition duration-200 hover:bg-gray-100">
+              <td class="p-3">{{ i + 1 }}</td>
+              <td class="p-3 whitespace-nowrap">{{ formatDate(e.date) }}</td>
+              <td class="p-3">{{ e.description }}</td>
+              <td class="p-3">{{ e.user?.name ?? 'N/A' }}</td>
+              <td class="p-3 text-right">{{ toMoney(e.amount) }}</td>
+            </tr>
+          </tbody>
+
+          <tfoot class="bg-gray-50 text-[12px] font-semibold">
+            <tr>
+              <td class="p-3 text-right" colspan="4">Totals:</td>
+              <td class="p-3 text-right">{{ toMoney(totalExpenseAmount) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
 
 
 
@@ -464,10 +522,13 @@ import "jspdf-autotable";
 const props = defineProps({
   products: { type: Array, required: true },
   sales: { type: Array, required: true },
+  expenses: { type: Array, required: true },
 
   totalSaleAmount: { type: Number, required: true },
   averageTransactionValue: { type: Number, required: true },
   netProfit: { type: Number, required: true },
+  totalExpenseAmount: { type: Number, required: true },
+  netProfitAfterExpenses: { type: Number, required: true },
   totalTransactions: { type: Number, required: true },
 
   // New clear totals (in LKR)
@@ -490,6 +551,7 @@ const endDate   = ref(props.endDate);
 const products  = ref(props.products);
 
 const sales     = ref(props.sales);
+const expenses  = ref(props.expenses);
 
 
 // Formatting helpers
@@ -548,7 +610,7 @@ const customDiscountLkr = (s) => {
 
 // === NEW: combined discount helpers ===
 // Total discount (LKR) in a row = product-level discount (LKR) + custom discount (converted if %)
-const discountLkr = (s) =>  customDiscountLkr(s);
+const discountLkr = (s) => Number(s.discount || 0) + customDiscountLkr(s);
 
 // Pretty label for the "discounts" cell
 const discountDisplay = (s) => {
@@ -559,12 +621,15 @@ const discountDisplay = (s) => {
   const customVal   = Number(s.custom_discount || 0);
   const customType  = s.custom_discount_type || "fixed";
 
+  if (hasProdDisc) {
+    parts.push(`Item: ${toMoney(Number(s.discount || 0))} LKR`);
+  }
   if (customVal > 0) {
     if (customType === "percent") {
       const lkr = (gross * customVal) / 100;
-      parts.push(`${customVal}% (${toMoney(lkr)} LKR)`);
+      parts.push(`Custom: ${customVal}% (${toMoney(lkr)} LKR)`);
     } else {
-      parts.push(`${toMoney(customVal)} LKR`);
+      parts.push(`Custom: ${toMoney(customVal)} LKR`);
     }
   }
 
@@ -583,17 +648,18 @@ const profitAmount = (s) => netAmount(s) - Number(s.total_cost || 0);
 const salesTotalQty    = computed(() => sales.value.reduce((a, s) => a + saleQty(s), 0));
 const salesGrossTotal = computed(() =>
   sales.value.reduce((a, s) => {
-    const total = Number(s.total_amount || 0);
+    const total    = Number(s.total_amount || 0);
+    const prodDisc = Number(s.discount || 0);
 
-    // Work out discount in LKR
-    let customDiscountLkr = 0;
+    // Work out custom discount in LKR
+    let customDisc = 0;
     if (s.custom_discount_type === "percent") {
-      customDiscountLkr = (total * Number(s.custom_discount || 0)) / 100;
+      customDisc = (total * Number(s.custom_discount || 0)) / 100;
     } else {
-      customDiscountLkr = Number(s.custom_discount || 0);
+      customDisc = Number(s.custom_discount || 0);
     }
 
-    return a + (total - customDiscountLkr);
+    return a + (total - prodDisc - customDisc);
   }, 0)
 );
 
@@ -658,15 +724,16 @@ const saleNetTotal = (s) => {
 
 // Profit calc (mirror UI: uses sale-level totals so services are included)
 const saleProfit = (s) => {
-  const gross = Number(s.total_amount || 0);
-  const discount =
+  const gross    = Number(s.total_amount || 0);
+  const prodDisc = Number(s.discount || 0);
+  const customDisc =
     (s.custom_discount_type || "fixed") === "percent"
       ? (gross * Number(s.custom_discount || 0)) / 100
       : Number(s.custom_discount || 0);
 
-  const net = gross - discount;            // Final Selling Price shown in table
-  const cost = Number(s.total_cost || 0);  // works for products & services
-  return net - cost;                        // Profit (LKR)
+  const net = gross - prodDisc - customDisc; // Final net after all discounts
+  const cost = Number(s.total_cost || 0);    // works for products & services
+  return net - cost;                          // Profit (LKR)
 };
 
 
@@ -697,28 +764,33 @@ const downloadSalesTablePDF = () => {
   const discountDisplay = (s) => {
     const parts = [];
     const gross = Number(s.total_amount || 0);
+    const prodDisc = Number(s.discount || 0);
     const customVal = Number(s.custom_discount || 0);
     const customType = s.custom_discount_type || "fixed";
 
+    if (prodDisc > 0) {
+      parts.push(`Item: ${toMoney(prodDisc)} LKR`);
+    }
     if (customVal > 0) {
       if (customType === "percent") {
         const lkr = (gross * customVal) / 100;
-        parts.push(`${customVal}% (${toMoney(lkr)} LKR)`);
+        parts.push(`Custom: ${customVal}% (${toMoney(lkr)} LKR)`);
       } else {
-        parts.push(`${toMoney(customVal)} LKR`);
+        parts.push(`Custom: ${toMoney(customVal)} LKR`);
       }
     }
     return parts.join("  |  ");
   };
 
-  // ✅ FIXED: Profit calc (sale-level; includes services)
+  // ✅ FIXED: Profit calc (sale-level; includes services & product discounts)
   const saleProfit = (s) => {
-    const gross = Number(s.total_amount || 0);
-    const discount =
+    const gross    = Number(s.total_amount || 0);
+    const prodDisc = Number(s.discount || 0);
+    const customDisc =
       (s.custom_discount_type || "fixed") === "percent"
         ? (gross * Number(s.custom_discount || 0)) / 100
         : Number(s.custom_discount || 0);
-    const net = gross - discount;
+    const net = gross - prodDisc - customDisc;
     const cost = Number(s.total_cost || 0);
     return net - cost;
   };
@@ -730,8 +802,8 @@ const downloadSalesTablePDF = () => {
     const customer    = s.customer?.name ?? "N/A";
     const qty         = saleQty(s);
 
-    // UI shows Final Selling Price = total_amount - custom_discount (percent handled)
-    const grossNet    = Number(s.total_amount || 0) - customDiscountLkr(s);
+    // Final Selling Price = total_amount - product discount - custom discount (percent handled)
+    const grossNet    = Number(s.total_amount || 0) - Number(s.discount || 0) - customDiscountLkr(s);
 
     const discounts   = discountDisplay(s);
     const cost        = Number(s.total_cost || 0);
@@ -752,8 +824,8 @@ const downloadSalesTablePDF = () => {
 
   // Footer totals — mirror UI footer
   const totalQty       = sales.value.reduce((a, s) => a + saleQty(s), 0);
-  const totalGrossNet  = sales.value.reduce((a, s) => a + (Number(s.total_amount || 0) - customDiscountLkr(s)), 0);
-  const totalDiscounts = sales.value.reduce((a, s) => a + customDiscountLkr(s), 0);
+  const totalGrossNet  = sales.value.reduce((a, s) => a + (Number(s.total_amount || 0) - Number(s.discount || 0) - customDiscountLkr(s)), 0);
+  const totalDiscounts = sales.value.reduce((a, s) => a + Number(s.discount || 0) + customDiscountLkr(s), 0);
   const totalCost      = sales.value.reduce((a, s) => a + Number(s.total_cost || 0), 0);
   const totalProfit    = sales.value.reduce((a, s) => a + saleProfit(s), 0);
 
@@ -898,6 +970,48 @@ const downloadStockTablePDF = () => {
   doc.save(`Top_Products_Stock_${safe(dateRangeLabel.value)}.pdf`);
 };
 
+const downloadExpensesTablePDF = () => {
+  const doc = new jsPDF("p", "mm", "a4");
+  const now = new Date();
+
+  const rows = expenses.value.map((e, i) => [
+    i + 1,
+    formatDate(e.date),
+    e.description || "-",
+    e.user?.name || "N/A",
+    toMoney(e.amount),
+  ]);
+
+  doc.setFontSize(16);
+  doc.text("Expenses Report", 14, 12);
+  doc.setFontSize(10);
+  doc.text(`Date range: ${dateRangeLabel.value} • Generated: ${now.toLocaleString()}`, 14, 18);
+
+  doc.autoTable({
+    head: [["#", "Date", "Reason", "Added By", "Amount (LKR)"]],
+    body: rows,
+    foot: [[
+      { content: "Totals:", colSpan: 4, styles: { halign: "right", fontStyle: "bold" } },
+      toMoney(props.totalExpenseAmount),
+    ]],
+    startY: 24,
+    theme: "striped",
+    styles: { fontSize: 9, cellPadding: 2 },
+    headStyles: { fillColor: [180, 83, 9], textColor: 255 },
+    columnStyles: {
+      0: { cellWidth: 10 },
+      1: { cellWidth: 24 },
+      2: { cellWidth: 75 },
+      3: { cellWidth: 40 },
+      4: { cellWidth: 30, halign: "right" },
+    },
+    margin: { top: 18, left: 8, right: 8 },
+  });
+
+  const safe = (s) => String(s).replace(/[^\dA-Za-z-]/g, "_");
+  doc.save(`Expenses_Report_${safe(dateRangeLabel.value)}.pdf`);
+};
+
 // ===== DataTables init =====
 onMounted(() => {
   const jq = window.$;
@@ -921,6 +1035,22 @@ onMounted(() => {
         });
       },
       language: { search: "" },
+    });
+  }
+
+  // Expenses table
+  const $expense = jq && jq("#expenseTbl");
+  if ($expense && jq.fn.dataTable) {
+    if (jq.fn.dataTable.isDataTable($expense)) $expense.DataTable().destroy();
+    $expense.DataTable({
+      dom: "Bfrtip",
+      paging: false,
+      buttons: [],
+      language: { search: "" },
+      initComplete: function () {
+        const $input = jq("#expenseTbl_filter input");
+        $input.attr("placeholder", "Search expenses...");
+      },
     });
   }
 
