@@ -24,10 +24,7 @@ class ProductController extends Controller
 
     public function test(Request $request)
     {
-        $allcategories = Category::with('parent')->get()->map(function ($category) {
-            $category->hierarchy_string = $category->hierarchy_string; // Access it
-            return $category;
-        });
+        $allcategories = Category::with('parent')->get();
         return Inertia::render('Products/index2', [
             'categories' => $allcategories
         ]);
@@ -136,10 +133,7 @@ $productsQuery = Product::with('category', 'color', 'size', 'supplier')
 
 
         // $allcategories = Category::with('parent')->get();
-        $allcategories = Category::with('parent')->get()->map(function ($category) {
-            $category->hierarchy_string = $category->hierarchy_string; // Access it
-            return $category;
-        });
+        $allcategories = Category::with('parent')->get();
         $colors = Color::orderBy('created_at', 'desc')->get();
         $sizes = Size::orderBy('created_at', 'desc')->get();
         $suppliers = Supplier::orderBy('created_at', 'desc')->get();
@@ -268,7 +262,7 @@ $productsQuery = Product::with('category', 'color', 'size', 'supplier')
             return redirect()->route('products.index')->banner('Product created successfully');
         } catch (\Exception $e) {
             // Log error and redirect back with an error message
-            \Log::error('Error creating product: ' . $e->getMessage());
+            Log::error('Error creating product: ' . $e->getMessage());
 
             if ($request->expectsJson() || $request->wantsJson()) {
                 return response()->json([
@@ -351,7 +345,7 @@ $productsQuery = Product::with('category', 'color', 'size', 'supplier')
             return redirect()->route('products.index')->banner('Product created successfully');
         } catch (\Exception $e) {
             // Log error and redirect back with an error message
-            \Log::error('Error creating product: ' . $e->getMessage());
+            Log::error('Error creating product: ' . $e->getMessage());
 
             return redirect()->back()->with('error', 'An error occurred while creating the product. Please try again.');
         }
@@ -636,10 +630,7 @@ public function fetchProducts2(Request $request)
 
   public function addPromotion(Request $request)
     {
-        $allcategories = Category::with('parent')->get()->map(function ($category) {
-            $category->hierarchy_string = $category->hierarchy_string; // Access it
-            return $category;
-        });
+        $allcategories = Category::with('parent')->get();
         $colors = Color::orderBy('created_at', 'desc')->get();
         $sizes = Size::orderBy('created_at', 'desc')->get();
 
@@ -752,7 +743,7 @@ public function fetchProducts2(Request $request)
             return redirect()->route('products.index')->banner('Promotion created successfully');
         });
     } catch (\Throwable $e) {
-        \Log::error('Error creating promotion', ['error' => $e->getMessage()]);
+        Log::error('Error creating promotion', ['error' => $e->getMessage()]);
         return back()->with('error', 'An error occurred while creating the promotion. Please try again.')->withInput();
     }
 }

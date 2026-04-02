@@ -6,7 +6,13 @@ use App\Traits\GeneratesUniqueCode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
+/**
+ * @property int $id
+ * @property string|null $image
+ * @property int|null $stock_quantity
+ * @property int|null $supplier_id
+ * @property int|null $total_quantity
+ */
 class Product extends Model
 {
     use HasFactory, GeneratesUniqueCode;

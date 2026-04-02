@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use App\Models\Product;
 use App\Models\RentalBooking;
 use App\Models\SaleItem;
 use App\Models\Supplier;
