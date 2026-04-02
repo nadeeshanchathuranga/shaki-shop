@@ -43,53 +43,11 @@
               </button>
             </div>
 
-            <div v-if="isQuickSupplierOpen" class="mb-6 p-5 border border-orange-500 rounded-lg text-left bg-gray-900">
-              <h3 class="text-lg font-semibold text-white mb-4">Create Supplier</h3>
-              <div class="space-y-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-300">Supplier Name: <span class="text-red-500">*</span></label>
-                  <input
-                    v-model="supplierForm.name"
-                    type="text"
-                    required
-                    placeholder="Enter Supplier Name"
-                    class="w-full px-4 py-2 mt-2 text-black rounded-md focus:outline-none focus:ring focus:ring-orange-500"
-                  />
-                  <span v-if="supplierErrors.name" class="mt-2 text-red-500 block">{{ supplierErrors.name[0] }}</span>
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-300">Email: <span class="text-gray-500 text-xs">(Optional)</span></label>
-                  <input
-                    v-model="supplierForm.email"
-                    type="email"
-                    placeholder="Enter Email"
-                    class="w-full px-4 py-2 mt-2 text-black rounded-md focus:outline-none focus:ring focus:ring-orange-500"
-                  />
-                  <span v-if="supplierErrors.email" class="mt-2 text-red-500 block">{{ supplierErrors.email[0] }}</span>
-                </div>
-
-                <p v-if="supplierErrors.general" class="text-red-500 text-sm">{{ supplierErrors.general[0] }}</p>
-
-                <div class="flex gap-3">
-                  <button
-                    type="button"
-                    @click="submitQuickSupplier"
-                    :disabled="isSupplierSubmitting"
-                    class="px-4 py-2 text-white bg-orange-600 rounded hover:bg-orange-700 disabled:opacity-60"
-                  >
-                    Save Supplier
-                  </button>
-                  <button
-                    type="button"
-                    @click="closeQuickSupplier"
-                    class="px-4 py-2 text-gray-700 bg-gray-300 rounded hover:bg-gray-400"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
+            <QuickSupplierCreateModel
+              :open="isQuickSupplierOpen"
+              @update:open="isQuickSupplierOpen = $event"
+              @supplier-created="handleSupplierCreated"
+            />
 
             <form @submit.prevent="submit" enctype="multipart/form-data">
               <!-- Modal Form -->
@@ -388,6 +346,7 @@ import {
 } from "@headlessui/vue";
 import { computed, ref, watch } from "vue";
 import { useForm } from "@inertiajs/vue3";
+import QuickSupplierCreateModel from "@/Components/custom/QuickSupplierCreateModel.vue";
 
 const emit = defineEmits(["update:open", "success"]);
 const isQuickSupplierOpen = ref(false);
@@ -436,14 +395,6 @@ const form = useForm({
   commission_type_supplier: "fixed", // 'percentage' or 'fixed'
   image: null,
 });
-
-const supplierForm = ref({
-  name: "",
-  email: "",
-});
-
-const supplierErrors = ref({});
-const isSupplierSubmitting = ref(false);
 
 const commissionTypeShop = ref("fixed"); // Default to fixed amount
 const commissionTypeSupplier = ref("fixed"); // Default to fixed amount
@@ -569,56 +520,4 @@ const handleSupplierCreated = (newSupplier) => {
   }
 };
 
-const closeQuickSupplier = () => {
-  supplierForm.value = { name: "", email: "" };
-  supplierErrors.value = {};
-  isQuickSupplierOpen.value = false;
-};
-
-const submitQuickSupplier = async () => {
-  if (isSupplierSubmitting.value) return;
-  isSupplierSubmitting.value = true;
-  supplierErrors.value = {};
-
-  const formData = new FormData();
-  formData.append("name", supplierForm.value.name);
-  formData.append("email", supplierForm.value.email);
-
-  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
-
-  try {
-    const response = await fetch("/suppliers", {
-      method: "POST",
-      body: formData,
-      headers: {
-        "X-CSRF-TOKEN": token,
-        "X-Requested-With": "XMLHttpRequest",
-        Accept: "application/json",
-      },
-    });
-
-    const payload = await response.json().catch(() => ({}));
-
-    if (response.ok && payload.supplier) {
-      handleSupplierCreated(payload.supplier);
-      closeQuickSupplier();
-      return;
-    }
-
-    if (payload.errors) {
-      supplierErrors.value = payload.errors;
-    } else {
-      supplierErrors.value = {
-        general: [payload.message || "Failed to create supplier."],
-      };
-    }
-  } catch (error) {
-    console.error("Error creating supplier:", error);
-    supplierErrors.value = {
-      general: ["An unexpected error occurred while creating the supplier."],
-    };
-  } finally {
-    isSupplierSubmitting.value = false;
-  }
-};
 </script>
