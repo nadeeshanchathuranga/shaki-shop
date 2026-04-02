@@ -507,32 +507,21 @@ const openPrintSlip = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Receipt</title>
         <style>
-            @media print {
-                body {
-                    margin: 0;
-                    padding: 0;
-                    -webkit-print-color-adjust: exact;
-                }
-            }
+      @media print { body { margin:0; padding:0 5mm 0 0; -webkit-print-color-adjust:exact; } }
             body {
-                background-color: #ffffff;
+        background-color: #fff;
                 font-size: 12px;
-                font-family: 'Arial', sans-serif;
+        font-family: 'Arial',sans-serif;
                 margin: 0;
-                padding: 10px;
+        padding: 10px 5mm 10mm 7mm;
                 color: #000;
             }
             .header {
                 text-align: center;
                 margin-bottom: 16px;
             }
-            .header h1 {
-                font-size: 20px;
-                font-weight: bold;
-                margin: 0;
-            }
             .header p {
-                font-size: 10px;
+        font-size: 12px;
                 margin: 4px 0;
             }
             .section {
@@ -543,7 +532,7 @@ const openPrintSlip = () => {
             .info-row {
                 display: flex;
                 justify-content: space-between;
-                font-size: 12px;
+        font-size: 14px;
                 margin-top: 8px;
             }
             .info-row p {
@@ -560,8 +549,7 @@ const openPrintSlip = () => {
                 margin-top: 8px;
             }
             table th, table td {
-                padding: 6px 8px;
-                border-bottom: 1px solid #ddd;
+              padding: 6px 8px;
             }
             table th {
                 text-align: left;
@@ -594,18 +582,15 @@ const openPrintSlip = () => {
             .footer p {
                 margin: 6px 0;
             }
-            .footer .italic {
-                font-style: italic;
-            }
         </style>
       </head>
       <body>
         <div class="receipt-container">
 
         <div class="header">
-          <h1>${props.companyInfo?.name || 'Company Name'}</h1>
-          <p>${props.companyInfo?.address || ''}</p>
-          ${props.companyInfo?.phone || props.companyInfo?.phone2 || props.companyInfo?.email 
+          <img src="/images/billlogo.png" style="width:230px;height:100px;" />
+          <p>${props.companyInfo?.address || 'No 51/1/1, Mahabage Road, Ragama'}</p>
+          ${props.companyInfo?.phone || props.companyInfo?.phone2 || props.companyInfo?.email
             ? `
               <p>
                 ${props.companyInfo?.phone ? props.companyInfo.phone : ''}
@@ -617,6 +602,7 @@ const openPrintSlip = () => {
               `
             : ''
           }
+          <p style="font-weight:bold;font-size:14px;margin-top:8px;border:1px solid #000;display:inline-block;padding:2px 12px;">SALES RECEIPT</p>
         </div>
 
           <div class="section">
@@ -644,21 +630,22 @@ const openPrintSlip = () => {
 
           <div class="section">
               <table>
+                <colgroup><col style="width:60%;"><col style="width:15%;"><col style="width:25%;"></colgroup>
                   <thead>
                       <tr>
-                          <th>Description</th>
+                    <th>Items</th>
                           <th style="text-align: center;">Qty</th>
                           <th style="text-align: right;">Price</th>
                       </tr>
                   </thead>
-                  <tbody>
+                <tbody style="font-size:11px;">
                       ${products.value
                           .map(
                               (product) => `
                               <tr>
                                   <td>${product.name}</td>
                                   <td style="text-align: center;">${product.quantity}</td>
-                                  <td>${product.unitPrice}</td>
+                        <td>${Number(product.unitPrice).toFixed(2)}</td>
                               </tr>`
                           )
                           .join("")}
@@ -675,24 +662,24 @@ const openPrintSlip = () => {
                   <span>Custom Discount</span>
                   <span>${custom_discount.value} LKR</span>
               </div>
-              <div>
+                <div style="font-weight:bold;font-size:14px;">
                   <span>Total</span>
                   <span>${total.value} LKR</span>
               </div>
-              <div>
+                <div>
                   <span>Cash</span>
                   <span>${cash.value} LKR</span>
               </div>
-              <div style="font-weight: bold;">
+                <div>
                   <span>Balance</span>
                   <span>${balance.value} LKR</span>
               </div>
           </div>
           
           <div class="footer">
-              <p>THANK YOU COME AGAIN</p>
-              <p class="italic">Let the quality define its own standards</p>
-              <p style="font-weight: bold;">Powered by JAAN Network (Pvt) Ltd.</p>
+                <p>THANK YOU COME AGAIN</p>
+                <p style="font-weight: bold;">Powered by JAAN Network Ltd.</p>
+                <p>${new Date().toLocaleTimeString()}</p>
           </div>
         </div>
       </body>
@@ -710,10 +697,26 @@ const openPrintSlip = () => {
   printWindow.document.write(printContent); // Changed from openPrintSlip to printContent
   printWindow.document.close();
 
-  // Wait for the content to load before triggering print
-  printWindow.onload = () => {
+  // Safari/macOS can miss the onload callback on document.write popups.
+  // Use both onload and a timed fallback to ensure print dialog appears.
+  let hasTriggeredPrint = false;
+  const triggerPrint = () => {
+    if (hasTriggeredPrint || printWindow.closed) {
+      return;
+    }
+    hasTriggeredPrint = true;
     printWindow.focus();
     printWindow.print();
+  };
+
+  printWindow.onload = () => {
+    setTimeout(triggerPrint, 250);
+  };
+
+  // Fallback for browsers that do not fire onload reliably for written documents.
+  setTimeout(triggerPrint, 700);
+
+  printWindow.onafterprint = () => {
     printWindow.close();
   };
 };
