@@ -225,7 +225,7 @@ class PosController extends Controller
                         if ($newStockQuantity < 0) {
                             DB::rollBack();
                             return response()->json([
-                                'message' => "Insufficient availability for rental item: {$rentalItemModel->customer_name} ({$rentalItemModel->rental_quantity} available)",
+                                'message' => "Insufficient availability for rental item: {$rentalItemModel->item_name} ({$rentalItemModel->rental_quantity} available)",
                             ], 423);
                         }
 
@@ -347,74 +347,99 @@ class PosController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $saleId = $request->input('sale_id');
-        $cashReceived = $request->input('cash_received', 0);
-        $paymentMethod = $request->input('payment_method', 'cash');
-        $damageAmount = $request->input('damage_amount', 0);
-
-        $sale = Sale::with(['saleItems.rentalItem', 'customer'])->findOrFail($saleId);
-
-        // Calculate late days
-        $returnDate = now()->startOfDay();
-        $agreedReturnDate = \Carbon\Carbon::parse($sale->rental_date_to)->startOfDay();
-        $lateDays = 0;
-        $lateFee = 0;
-
-        if ($returnDate->greaterThan($agreedReturnDate)) {
-            $lateDays = $returnDate->diffInDays($agreedReturnDate);
-            $lateFee = $lateDays * 200;
-        }
-
-        // Deposit-based deductions
-        $deposit = floatval($sale->deposit);
-        $totalDeductions = $lateFee + $damageAmount;
-        $depositRefund = $deposit - $totalDeductions;
-        // If depositRefund is negative, customer must pay the deficit
-        $customerDeficit = $depositRefund < 0 ? abs($depositRefund) : 0;
-
-        // Calculate the amount due after advance (from original sale total)
-        $originalTotal = $sale->total_amount - $sale->discount - ($sale->custom_discount ?? 0);
-        $amountAfterAdvance = $originalTotal - $sale->advance_amount;
-
-        // Total customer needs to pay = remaining sale amount + any deposit deficit
-        // (if deposit covers deductions, customer doesn't pay extra)
-        $totalToPay = $customerDeficit;
-        $balance = $cashReceived - $totalToPay;
-
-        // Restore rental quantities (items returned)
-        foreach ($sale->saleItems as $saleItem) {
-            if ($saleItem->rental_item_id && $saleItem->rentalItem) {
-                $saleItem->rentalItem->increment('rental_quantity', $saleItem->quantity);
-            }
-        }
-
-        // Mark the sale as returned and save fee data
-        $sale->is_rental_returned = true;
-        $sale->late_fee = $lateFee;
-        $sale->late_days = $lateDays;
-        $sale->damage_amount = $damageAmount;
-        $sale->deposit_refund = $depositRefund;
-        if ($paymentMethod) {
-            $sale->payment_method = $paymentMethod;
-        }
-        $sale->save();
-
-        return response()->json([
-            'message' => 'Rental return processed successfully!',
-            'sale' => $sale,
-            'late_days' => $lateDays,
-            'late_fee' => $lateFee,
-            'damage_amount' => $damageAmount,
-            'deposit' => $deposit,
-            'total_deductions' => $totalDeductions,
-            'deposit_refund' => $depositRefund,
-            'customer_deficit' => $customerDeficit,
-            'amount_after_advance' => $amountAfterAdvance,
-            'total_to_pay' => $totalToPay,
-            'cash_received' => $cashReceived,
-            'payment_method' => $sale->payment_method,
-            'balance' => $balance,
+        $validated = $request->validate([
+            'sale_id' => 'required|exists:sales,id',
+            'cash_received' => 'nullable|numeric|min:0',
+            'payment_method' => 'nullable|string',
+            'damage_amount' => 'nullable|numeric|min:0',
         ]);
+
+        $cashReceived = (float) ($validated['cash_received'] ?? 0);
+        $paymentMethod = $validated['payment_method'] ?? 'cash';
+        $damageAmount = (float) ($validated['damage_amount'] ?? 0);
+
+        $result = DB::transaction(function () use ($validated, $cashReceived, $paymentMethod, $damageAmount) {
+            $sale = Sale::whereKey($validated['sale_id'])
+                ->lockForUpdate()
+                ->with(['saleItems.rentalItem', 'customer'])
+                ->firstOrFail();
+
+            if ($sale->is_rental_returned) {
+                return [
+                    'already_returned' => true,
+                    'message' => 'This rental sale has already been returned.',
+                ];
+            }
+
+            // Calculate late days
+            $returnDate = now()->startOfDay();
+            $agreedReturnDate = \Carbon\Carbon::parse($sale->rental_date_to)->startOfDay();
+            $lateDays = 0;
+            $lateFee = 0;
+
+            if ($returnDate->greaterThan($agreedReturnDate)) {
+                $lateDays = $returnDate->diffInDays($agreedReturnDate);
+                $lateFee = $lateDays * 200;
+            }
+
+            // Deposit-based deductions
+            $deposit = (float) $sale->deposit;
+            $totalDeductions = $lateFee + $damageAmount;
+            $depositRefund = $deposit - $totalDeductions;
+            $customerDeficit = $depositRefund < 0 ? abs($depositRefund) : 0;
+
+            // Calculate the amount due after advance (from original sale total)
+            $originalTotal = $sale->total_amount - $sale->discount - ($sale->custom_discount ?? 0);
+            $amountAfterAdvance = $originalTotal - $sale->advance_amount;
+
+            $totalToPay = $customerDeficit;
+            $balance = $cashReceived - $totalToPay;
+
+            // Restore rental quantities (items returned)
+            foreach ($sale->saleItems as $saleItem) {
+                if ($saleItem->rental_item_id) {
+                    RentalItem::whereKey($saleItem->rental_item_id)
+                        ->increment('rental_quantity', (int) $saleItem->quantity);
+                }
+            }
+
+            // Mark the sale as returned and save fee data
+            $sale->is_rental_returned = true;
+            $sale->late_fee = $lateFee;
+            $sale->late_days = $lateDays;
+            $sale->damage_amount = $damageAmount;
+            $sale->deposit_refund = $depositRefund;
+            if ($paymentMethod) {
+                $sale->payment_method = $paymentMethod;
+            }
+            $sale->save();
+
+            return [
+                'sale' => $sale,
+                'late_days' => $lateDays,
+                'late_fee' => $lateFee,
+                'damage_amount' => $damageAmount,
+                'deposit' => $deposit,
+                'total_deductions' => $totalDeductions,
+                'deposit_refund' => $depositRefund,
+                'customer_deficit' => $customerDeficit,
+                'amount_after_advance' => $amountAfterAdvance,
+                'total_to_pay' => $totalToPay,
+                'cash_received' => $cashReceived,
+                'payment_method' => $sale->payment_method,
+                'balance' => $balance,
+            ];
+        });
+
+        if (!empty($result['already_returned'])) {
+            return response()->json([
+                'message' => $result['message'],
+            ], 422);
+        }
+
+        return response()->json(array_merge([
+            'message' => 'Rental return processed successfully!',
+        ], $result));
     }
 
     /**
