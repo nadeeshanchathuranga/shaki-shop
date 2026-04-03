@@ -411,7 +411,7 @@ class RentalItemController extends Controller
 
         try {
             $booking = RentalBooking::findOrFail($bookingId);
-            
+
             // Delete the booking
             $booking->delete();
 
@@ -430,7 +430,7 @@ class RentalItemController extends Controller
     private function generateUniqueRentalBarcode(): string
     {
         do {
-            $barcode = now()->format('ymdHisv') . random_int(10, 99);
+            $barcode = (string) random_int(10000000, 99999999);
         } while (RentalItem::where('barcode', $barcode)->exists());
 
         return $barcode;
