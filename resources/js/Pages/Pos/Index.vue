@@ -105,6 +105,7 @@
                             <div class="flex items-center justify-center w-3/4">
                                 <label for="search" class="text-xl font-medium text-gray-800"></label>
                                 <input v-model="form.barcode" id="search" type="text" placeholder="Enter BarCode Here!"
+                                    @keyup.enter="submitBarcode"
                                     class="w-full h-16 px-4 rounded-l-2xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             </div>
                             <div class="flex items-end justify-end w-1/4">
