@@ -80,13 +80,13 @@
                                   class="flex items-center px-4 py-2.5 text-base font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm whitespace-nowrap">
                                   <i class="ri-book-open-line mr-1.5 text-lg"></i> User Manual
                               </button>
-                              
+
                               <!-- Rental Items Button -->
                               <button @click="isSelectRentalItemModalOpen = true"
                                   class="flex items-center px-4 py-2.5 text-base font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition shadow-sm whitespace-nowrap">
                                   <i class="ri-shopping-bag-3-line mr-1.5 text-lg"></i> Rental Items
                               </button>
-                              
+
                               <!-- Return Rental Button -->
                               <button @click="isReturnRentalModalOpen = true"
                                   class="flex items-center px-4 py-2.5 text-base font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition shadow-sm whitespace-nowrap">
@@ -996,7 +996,9 @@ const submitBarcode = async () => {
             }
 
             product.value = fetchedProduct; // Update product state for individual display
-            error.value = null; // Clear any previous errors
+            error.value = null;
+            form.barcode = "";
+            // Clear any previous errors
             console.log("Item fetched successfully and added to cart:", fetchedProduct);
         } else {
             isAlertModalOpen.value = true;
@@ -1270,9 +1272,9 @@ const printBookingReceipt = (data) => {
     printWindow.document.open();
     printWindow.document.write(receiptHTML);
     printWindow.document.close();
-    printWindow.onload = () => { 
-        printWindow.focus(); 
-        printWindow.print(); 
+    printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
         // Delay closing to allow print to complete
         setTimeout(() => { printWindow.close(); }, 1000);
     };
