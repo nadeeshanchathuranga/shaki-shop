@@ -450,60 +450,28 @@ const handleImageUpload = (event) => {
 };
 
 const submit = () => {
-  if (isSubmitting.value) return; // Prevent double submission
-  isSubmitting.value = true;
-  
-  // Use fetch to prevent full page redirect issues with modal
-  const formData = new FormData();
-  
-  // Append all form fields
-  Object.keys(form.data()).forEach(key => {
-    const value = form[key];
-    if (value !== null && value !== undefined) {
-      if (key === 'image' && value instanceof File) {
-        formData.append(key, value);
-      } else if (!(value instanceof File)) {
-        formData.append(key, value);
-      }
-    }
-  });
-  
-  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-  
-  fetch('/rental-items', {
-    method: 'POST',
-    body: formData,
-    headers: {
-      'X-CSRF-TOKEN': token,
-      'X-Requested-With': 'XMLHttpRequest',
-      'Accept': 'application/json',
-    },
-  })
-  .then(async response => {
-    const payload = await response.json().catch(() => ({}));
+  if (isSubmitting.value) return;
 
-    if (response.ok) {
-      // Success - emit event and let parent handle reload
+  isSubmitting.value = true;
+  form.clearErrors();
+
+  form.post("/rental-items", {
+    forceFormData: true,
+    preserveScroll: true,
+    onSuccess: () => {
       form.reset();
       emit("success", "Rental item created successfully!");
       emit("update:open", false);
-      isSubmitting.value = false;
-    } else {
-      isSubmitting.value = false;
-      console.error("Validation errors:", payload.errors);
-      if (payload.errors) {
-        Object.keys(payload.errors).forEach(field => {
-          form.errors[field] = payload.errors[field][0] ?? payload.errors[field];
-        });
-      } else {
-        form.errors.general = payload.message || "Failed to save rental item. Please try again.";
+    },
+    onError: (errors) => {
+      console.error("Form submission failed:", errors);
+      if (!Object.keys(errors).length) {
+        form.setError("general", "Failed to save rental item. Please try again.");
       }
-    }
-  })
-  .catch(error => {
-    console.error("Form submission failed:", error);
-    form.errors.general = "An unexpected error occurred while saving the rental item.";
-    isSubmitting.value = false;
+    },
+    onFinish: () => {
+      isSubmitting.value = false;
+    },
   });
 };
 
