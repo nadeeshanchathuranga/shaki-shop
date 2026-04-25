@@ -320,8 +320,8 @@
                       }}
                     </option>
                   </select>
-                  <span v-if="form.errors.name" class="mt-4 text-red-500">{{
-                    form.errors.name
+                  <span v-if="form.errors.category_id" class="mt-4 text-red-500">{{
+                    form.errors.category_id
                   }}</span>
                 </div>
                 <div class="w-full">
@@ -342,8 +342,8 @@
                       {{ supplier.name }}
                     </option>
                   </select>
-                  <span v-if="form.errors.name" class="mt-4 text-red-500">{{
-                    form.errors.name
+                  <span v-if="form.errors.supplier_id" class="mt-4 text-red-500">{{
+                    form.errors.supplier_id
                   }}</span>
                   </div>
                   </div>
@@ -677,6 +677,7 @@ import {
 } from "@headlessui/vue";
 import { ref, computed, watch } from "vue";
 import { useForm } from "@inertiajs/vue3";
+import axios from "axios";
 
 const emit = defineEmits(["update:open", "success"]);
 
@@ -800,10 +801,15 @@ function updateDiscountedPrice() {
 // Function to update discount based on selling price and discounted price
 function updateDiscount() {
   if (form.selling_price && form.discounted_price) {
-    const discountAmount = form.selling_price - form.discounted_price;
-    form.discount = limitToTwoDecimals(
-      (discountAmount / form.selling_price) * 100
-    );
+    const selling = parseFloat(form.selling_price);
+    const discounted = parseFloat(form.discounted_price);
+    if (isNaN(selling) || isNaN(discounted) || discounted >= selling) {
+      form.discounted_price = null;
+      form.discount = 0;
+      return;
+    }
+    const calculated = ((selling - discounted) / selling) * 100;
+    form.discount = limitToTwoDecimals(Math.min(100, Math.max(0, calculated)));
   }
 }
 
@@ -821,7 +827,7 @@ const submit = () => {
 
   Object.keys(form.data()).forEach((key) => {
     const value = form[key];
-    if (value !== null && value !== undefined) {
+    if (value !== null && value !== undefined && value !== '') {
       if (key === "image" && value instanceof File) {
         formData.append(key, value);
       } else if (!(value instanceof File)) {
@@ -830,34 +836,20 @@ const submit = () => {
     }
   });
 
-  const token =
-    document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
-
-  fetch("/products", {
-    method: "POST",
-    body: formData,
-    headers: {
-      "X-CSRF-TOKEN": token,
-      "X-Requested-With": "XMLHttpRequest",
-      Accept: "application/json",
-    },
-  })
-    .then(async (response) => {
-      const payload = await response.json().catch(() => ({}));
-
-      if (response.ok) {
-        form.reset();
-        emit("success", payload.message || "Product created successfully!");
-        emit("update:open", false);
-      } else {
-        if (payload.errors) {
-          Object.keys(payload.errors).forEach((field) => {
-            form.errors[field] = payload.errors[field][0] ?? payload.errors[field];
-          });
-        }
-      }
+  axios.post("/products", formData)
+    .then((response) => {
+      const payload = response.data;
+      form.reset();
+      emit("success", payload.message || "Product created successfully!");
+      emit("update:open", false);
     })
     .catch((error) => {
+      const errors = error.response?.data?.errors;
+      if (errors) {
+        Object.keys(errors).forEach((field) => {
+          form.errors[field] = errors[field][0] ?? errors[field];
+        });
+      }
       console.error("Form submission failed:", error);
     })
     .finally(() => {
@@ -886,42 +878,27 @@ const supplierForm = useForm({
 const supplierErrors = ref({});
 
 const submitSupplier = async () => {
-  supplierErrors.value = {}; // Clear previous errors
+  supplierErrors.value = {};
   const formData = new FormData();
   formData.append('name', supplierForm.name);
   formData.append('email', supplierForm.email);
 
-  // Get CSRF token from meta tag
-  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
   try {
-    const response = await fetch('/suppliers', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'X-CSRF-TOKEN': token,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json',
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      if (data.supplier) {
-        handleSupplierCreated(data.supplier);
-      }
-      supplierForm.reset();
-      successMessage.value = "Supplier created successfully!";
-      closeDialog();
-    } else {
-      const errorData = await response.json();
-      if (errorData.errors) {
-        supplierErrors.value = errorData.errors;
-      }
+    const response = await axios.post('/suppliers', formData);
+    if (response.data.supplier) {
+      handleSupplierCreated(response.data.supplier);
     }
+    supplierForm.reset();
+    successMessage.value = "Supplier created successfully!";
+    closeDialog();
   } catch (error) {
+    const errors = error.response?.data?.errors;
+    if (errors) {
+      supplierErrors.value = errors;
+    } else {
+      supplierErrors.value = { general: ['An error occurred while creating the supplier.'] };
+    }
     console.error('Error creating supplier:', error);
-    supplierErrors.value = { general: ['An error occurred while creating the supplier.'] };
   }
 };
 
