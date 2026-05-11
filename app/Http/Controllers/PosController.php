@@ -229,6 +229,22 @@ class PosController extends Controller
                             ], 423);
                         }
 
+                        // For direct Rent Now (not converting a booking), check date overlap against existing bookings
+                        if ($request->input('rental_date_from') && !$request->input('booking_id')) {
+                            $overlappingBookingQty = RentalBooking::where('rental_item_id', $rentalItemModel->id)
+                                ->where('status', 'booked')
+                                ->where('rental_date_from', '<=', $request->input('rental_date_to'))
+                                ->where('rental_date_to', '>=', $request->input('rental_date_from'))
+                                ->sum('quantity');
+
+                            if ($rentalItemModel->rental_quantity - $overlappingBookingQty < $product['quantity']) {
+                                DB::rollBack();
+                                return response()->json([
+                                    'message' => "'{$rentalItemModel->item_name}' is not available for the selected dates due to existing bookings.",
+                                ], 423);
+                            }
+                        }
+
                         // Create sale item for rental item
                         SaleItem::create([
                             'sale_id' => $sale->id,
@@ -471,10 +487,33 @@ class PosController extends Controller
             foreach ($validated['items'] as $item) {
                 $rentalItem = RentalItem::find($item['rental_item_id']);
 
-                if (!$rentalItem || $rentalItem->rental_quantity < $item['quantity']) {
+                if (!$rentalItem) {
+                    DB::rollBack();
+                    return response()->json(['message' => 'Rental item not found.'], 404);
+                }
+
+                // Check how many units are already committed for the requested date range
+                $overlappingBookingQty = RentalBooking::where('rental_item_id', $item['rental_item_id'])
+                    ->where('status', 'booked')
+                    ->where('rental_date_from', '<=', $validated['rental_date_to'])
+                    ->where('rental_date_to', '>=', $validated['rental_date_from'])
+                    ->sum('quantity');
+
+                $overlappingRentalQty = SaleItem::where('rental_item_id', $item['rental_item_id'])
+                    ->whereHas('sale', function ($q) use ($validated) {
+                        $q->where('is_rental_returned', false)
+                          ->whereNotNull('rental_date_from')
+                          ->where('rental_date_from', '<=', $validated['rental_date_to'])
+                          ->where('rental_date_to', '>=', $validated['rental_date_from']);
+                    })
+                    ->sum('quantity');
+
+                $availableForDates = $rentalItem->total_quantity - $overlappingBookingQty - $overlappingRentalQty;
+
+                if ($availableForDates < $item['quantity']) {
                     DB::rollBack();
                     return response()->json([
-                        'message' => 'Insufficient availability for rental item.',
+                        'message' => "'{$rentalItem->item_name}' is not available for the selected dates. Only {$availableForDates} unit(s) available.",
                     ], 423);
                 }
 
@@ -490,9 +529,6 @@ class PosController extends Controller
                     'advance_amount' => $validated['advance_amount'],
                     'status' => 'booked',
                 ]);
-
-                // Deduct rental quantity
-                $rentalItem->decrement('rental_quantity', $item['quantity']);
 
                 $bookings[] = $booking->load('rentalItem');
             }

@@ -22,6 +22,7 @@ class RentalItem extends Model
         'supplier_id',
         'customer_name',
         'rental_quantity',
+        'total_quantity',
         'rent_price',
         'commission_type_shop',
         'commission_percentage_shop',

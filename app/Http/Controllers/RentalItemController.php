@@ -101,6 +101,8 @@ class RentalItemController extends Controller
                 $validated['image'] = 'storage/' . $path;
             }
 
+            $validated['total_quantity'] = $validated['rental_quantity'];
+
             // Create with retry in case a rare unique-barcode collision happens under concurrent requests.
             $rentalItem = null;
             $maxAttempts = 5;
@@ -200,6 +202,8 @@ class RentalItemController extends Controller
             $validated['commission_amount_supplier'] = $validated['commission_type_supplier'] === 'percentage'
                 ? round($rentPrice * ($validated['commission_percentage_supplier'] ?? 0) / 100, 2)
                 : round($validated['commission_percentage_supplier'] ?? 0, 2);
+
+            $validated['total_quantity'] = $validated['rental_quantity'];
 
             // Handle image upload
             if ($request->hasFile('image')) {
