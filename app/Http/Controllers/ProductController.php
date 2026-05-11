@@ -17,6 +17,7 @@ use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Models\PromotionItem;
+use App\Models\SupplierProductPurchase;
 
 class ProductController extends Controller
 {
@@ -251,6 +252,18 @@ $productsQuery = Product::with('category', 'color', 'size', 'supplier')
                 ]);
             }
 
+            // Record supplier product purchase for cost tracking
+            if (!empty($validated['supplier_id']) && ($validated['cost_price'] ?? 0) > 0 && $stockQuantity > 0) {
+                SupplierProductPurchase::create([
+                    'supplier_id' => $validated['supplier_id'],
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'quantity' => $stockQuantity,
+                    'cost_price' => $validated['cost_price'],
+                    'total_amount' => round($validated['cost_price'] * $stockQuantity, 2),
+                ]);
+            }
+
             if ($request->expectsJson() || $request->wantsJson()) {
                 return response()->json([
                     'product' => $product->load('category', 'color', 'size', 'supplier'),
@@ -335,7 +348,17 @@ $productsQuery = Product::with('category', 'color', 'size', 'supplier')
                 ]);
             }
 
-
+            // Record supplier product purchase for cost tracking
+            if (!empty($validated['supplier_id']) && ($validated['cost_price'] ?? 0) > 0 && $stockQuantity > 0) {
+                SupplierProductPurchase::create([
+                    'supplier_id' => $validated['supplier_id'],
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'quantity' => $stockQuantity,
+                    'cost_price' => $validated['cost_price'],
+                    'total_amount' => round($validated['cost_price'] * $stockQuantity, 2),
+                ]);
+            }
 
 
 

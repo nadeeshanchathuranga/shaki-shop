@@ -6,6 +6,7 @@ use App\Models\RentalBooking;
 use App\Models\SaleItem;
 use App\Models\Supplier;
 use App\Models\SupplierCommissionPayment;
+use App\Models\SupplierProductPurchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -154,6 +155,7 @@ class SupplierController extends Controller
         return Inertia::render('Suppliers/Invoice', [
             'supplier' => $supplier,
             'commissionRows' => $invoiceData['commissionRows'],
+            'productPurchaseRows' => $invoiceData['productPurchaseRows'],
             'paymentRows' => $invoiceData['paymentRows'],
             'totals' => $invoiceData['totals'],
         ]);
@@ -273,6 +275,23 @@ class SupplierController extends Controller
             })
             ->values();
 
+        $productPurchaseRows = SupplierProductPurchase::query()
+            ->where('supplier_id', $supplierId)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($purchase) {
+                return [
+                    'id' => 'purchase-' . $purchase->id,
+                    'date' => optional($purchase->created_at)->format('Y-m-d H:i:s'),
+                    'product_name' => $purchase->product_name,
+                    'quantity' => (int) $purchase->quantity,
+                    'cost_price' => (float) $purchase->cost_price,
+                    'total_amount' => (float) $purchase->total_amount,
+                    'notes' => $purchase->notes,
+                ];
+            })
+            ->values();
+
         $paymentRows = SupplierCommissionPayment::query()
             ->where('supplier_id', $supplierId)
             ->with('user:id,name')
@@ -292,17 +311,22 @@ class SupplierController extends Controller
         $totalRentAmount = (float) $commissionRows->sum('total_price');
         $totalSupplierCommission = (float) $commissionRows->sum('supplier_commission');
         $totalShopCommission = (float) $commissionRows->sum('shop_commission');
+        $totalProductPurchases = (float) $productPurchaseRows->sum('total_amount');
+        $totalOwed = $totalSupplierCommission + $totalProductPurchases;
         $totalPaid = (float) $paymentRows->sum('amount');
 
         return [
             'commissionRows' => $commissionRows,
+            'productPurchaseRows' => $productPurchaseRows,
             'paymentRows' => $paymentRows,
             'totals' => [
                 'total_rent_amount' => round($totalRentAmount, 2),
                 'total_supplier_commission' => round($totalSupplierCommission, 2),
                 'total_shop_commission' => round($totalShopCommission, 2),
+                'total_product_purchases' => round($totalProductPurchases, 2),
+                'total_owed' => round($totalOwed, 2),
                 'total_paid' => round($totalPaid, 2),
-                'outstanding_amount' => round(max($totalSupplierCommission - $totalPaid, 0), 2),
+                'outstanding_amount' => round(max($totalOwed - $totalPaid, 0), 2),
             ],
         ];
     }

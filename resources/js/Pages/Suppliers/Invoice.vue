@@ -24,11 +24,18 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-        
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white rounded-xl p-4 shadow border border-gray-200">
-          <p class="text-xs uppercase text-gray-500">Supplier Commission</p>
+          <p class="text-xs uppercase text-gray-500">Rental Commission</p>
           <p class="text-lg font-bold text-sky-700">{{ formatCurrency(totals.total_supplier_commission) }}</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 shadow border border-gray-200">
+          <p class="text-xs uppercase text-gray-500">Product Purchases</p>
+          <p class="text-lg font-bold text-orange-600">{{ formatCurrency(totals.total_product_purchases) }}</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 shadow border border-gray-200">
+          <p class="text-xs uppercase text-gray-500">Total Owed</p>
+          <p class="text-lg font-bold text-purple-700">{{ formatCurrency(totals.total_owed) }}</p>
         </div>
         <div class="bg-white rounded-xl p-4 shadow border border-gray-200">
           <p class="text-xs uppercase text-gray-500">To Be Paid</p>
@@ -105,6 +112,38 @@
       </div>
 
       <div class="bg-white rounded-xl p-6 shadow border border-gray-200 space-y-4">
+        <p class="text-lg font-bold text-black">Product Purchase Records</p>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border border-gray-200">
+            <thead class="bg-orange-600 text-white">
+              <tr>
+                <th class="p-3 text-left">Date</th>
+                <th class="p-3 text-left">Product</th>
+                <th class="p-3 text-right">Qty</th>
+                <th class="p-3 text-right">Cost Price</th>
+                <th class="p-3 text-right">Total Cost</th>
+                <th class="p-3 text-left">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in safePurchaseRows" :key="row.id" class="border-t border-gray-200">
+                <td class="p-3">{{ row.date }}</td>
+                <td class="p-3">{{ row.product_name }}</td>
+                <td class="p-3 text-right">{{ row.quantity }}</td>
+                <td class="p-3 text-right">{{ formatCurrency(row.cost_price) }}</td>
+                <td class="p-3 text-right font-semibold text-orange-600">{{ formatCurrency(row.total_amount) }}</td>
+                <td class="p-3">{{ row.notes || '-' }}</td>
+              </tr>
+              <tr v-if="safePurchaseRows.length === 0">
+                <td colspan="6" class="p-4 text-center text-gray-500">No product purchase records found for this supplier.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-6 shadow border border-gray-200 space-y-4">
         <p class="text-lg font-bold text-black">Commission Details (Rental Sales)</p>
 
         <div class="overflow-x-auto">
@@ -163,6 +202,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  productPurchaseRows: {
+    type: Array,
+    default: () => [],
+  },
   paymentRows: {
     type: Array,
     default: () => [],
@@ -186,6 +229,8 @@ const formatCurrency = (value) => {
   });
 };
 
+const safePurchaseRows = computed(() => props.productPurchaseRows || []);
+
 const paymentRowsWithRemaining = computed(() => {
   const sortedAsc = [...props.paymentRows].sort((a, b) => {
     const dateA = new Date(a.date || 0).getTime();
@@ -198,7 +243,7 @@ const paymentRowsWithRemaining = computed(() => {
     return Number(a.id || 0) - Number(b.id || 0);
   });
 
-  let remaining = Number(props.totals.total_supplier_commission || 0);
+  let remaining = Number(props.totals.total_owed || 0);
   const remainingMap = new Map();
 
   sortedAsc.forEach((row) => {
