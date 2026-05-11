@@ -82,12 +82,14 @@
 </template>
 
 <script setup>
-import { useForm } from "@inertiajs/vue3";
+import axios from "axios";
 import { ref } from "vue";
 
 const emit = defineEmits(["update:open", "supplier-created"]);
 const errors = ref({});
 const isSubmitting = ref(false);
+
+const form = ref({ name: "", email: "" });
 
 const playClickSound = () => {
   const clickSound = new Audio("/sounds/click-sound.mp3");
@@ -101,11 +103,6 @@ defineProps({
   },
 });
 
-const form = useForm({
-  name: "",
-  email: "",
-});
-
 const handleClose = () => {
   errors.value = {};
   emit("update:open", false);
@@ -114,43 +111,26 @@ const handleClose = () => {
 const submit = async () => {
   if (isSubmitting.value) return;
   isSubmitting.value = true;
-  errors.value = {}; // Clear previous errors
-  const formData = new FormData();
-  formData.append('name', form.name);
-  formData.append('email', form.email);
-
-  // Get CSRF token from meta tag
-  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  errors.value = {};
 
   try {
-    const response = await fetch('/suppliers', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'X-CSRF-TOKEN': token,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json',
-      },
+    const response = await axios.post('/suppliers', {
+      name: form.value.name,
+      email: form.value.email,
     });
 
-    const data = await response.json().catch(() => ({}));
-
-    if (response.ok) {
-      if (data.supplier) {
-        emit("supplier-created", data.supplier);
-      }
-      form.reset();
-      handleClose();
-    } else {
-      if (data.errors) {
-        errors.value = data.errors;
-      } else {
-        errors.value = { general: [data.message || 'Failed to create supplier.'] };
-      }
+    if (response.data.supplier) {
+      emit("supplier-created", response.data.supplier);
     }
+    form.value = { name: "", email: "" };
+    handleClose();
   } catch (error) {
-    console.error('Error creating supplier:', error);
-    errors.value = { general: ['An unexpected error occurred while creating the supplier.'] };
+    const data = error.response?.data;
+    if (data?.errors) {
+      errors.value = data.errors;
+    } else {
+      errors.value = { general: [data?.message || 'Failed to create supplier.'] };
+    }
   } finally {
     isSubmitting.value = false;
   }
