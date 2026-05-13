@@ -413,6 +413,7 @@ const openViewModal = (item) => {
 const handleSuccess = (message) => {
   successMessage.value = message;
   isSuccessModalOpen.value = true;
+  router.reload({ preserveScroll: false });
 };
 
 const openDeleteModal = (item) => {

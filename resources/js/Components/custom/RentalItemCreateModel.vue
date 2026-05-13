@@ -457,7 +457,6 @@ const submit = () => {
 
   form.post("/rental-items", {
     forceFormData: true,
-    preserveScroll: true,
     onSuccess: () => {
       form.reset();
       emit("success", "Rental item created successfully!");
