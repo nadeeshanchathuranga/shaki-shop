@@ -22,11 +22,15 @@ class RentalItemController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+
         $rentalItems = RentalItem::with('category', 'color', 'supplier')
+            ->when($search, fn($q) => $q->where('item_name', 'like', "%{$search}%"))
             ->orderBy('created_at', 'desc')
-            ->paginate(8);
+            ->paginate(8)
+            ->withQueryString();
 
         $categories = Category::with('parent')->get();
 
@@ -38,6 +42,7 @@ class RentalItemController extends Controller
             'categories' => $categories,
             'colors' => $colors,
             'suppliers' => $suppliers,
+            'search' => $search,
         ]);
     }
 

@@ -492,7 +492,7 @@ import {
   TransitionChild,
   TransitionRoot,
 } from "@headlessui/vue";
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, toRefs } from "vue";
 import { useForm } from "@inertiajs/vue3";
 
 // Emit event to toggle modal visibility
@@ -506,34 +506,36 @@ const playClickSound = () => {
   clickSound.play();
 };
 
-// Define props
-const { open, categories, colors, suppliers, sizes, selectedProduct } =
-  defineProps({
-    open: {
-      type: Boolean,
-      required: true,
-    },
-    categories: {
-      type: Array,
-      required: true,
-    },
-    colors: {
-      type: Array,
-      required: true,
-    },
-    suppliers: {
-      type: Array,
-      required: true,
-    },
-    sizes: {
-      type: Array,
-      required: true,
-    },
-    selectedProduct: {
-      type: Object,
-      default: null,
-    },
-  });
+// Define props — keep as reactive object so watchers work in Vue 3.2
+const props = defineProps({
+  open: {
+    type: Boolean,
+    required: true,
+  },
+  categories: {
+    type: Array,
+    required: true,
+  },
+  colors: {
+    type: Array,
+    required: true,
+  },
+  suppliers: {
+    type: Array,
+    required: true,
+  },
+  sizes: {
+    type: Array,
+    required: true,
+  },
+  selectedProduct: {
+    type: Object,
+    default: null,
+  },
+});
+
+// Destructure as reactive refs so the template keeps working
+const { open, categories, colors, suppliers, sizes } = toRefs(props);
 
 // UseForm for form state
 const form = useForm({
@@ -624,7 +626,7 @@ function updateDiscount() {
 
 // Watch for changes in selectedProduct and populate form
 watch(
-  () => selectedProduct,
+  () => props.selectedProduct,
   (newValue) => {
     if (newValue) {
       form.category_id = newValue.category_id || "";
@@ -654,7 +656,7 @@ watch(
 
 // Submit the form
 const submit = () => {
-  form.post(`/products/${selectedProduct.id}`, {
+  form.post(`/products/${props.selectedProduct.id}`, {
     preserveScroll: true,
     onSuccess: () => {
       console.log("Product updated successfully!");

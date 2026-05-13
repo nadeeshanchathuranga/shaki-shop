@@ -60,6 +60,16 @@
         </p>
       </div>
 
+      <div class="md:w-1/4 w-full">
+        <input
+          v-model="search"
+          @input="performSearch"
+          type="text"
+          placeholder="Search by item name..."
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400"
+        />
+      </div>
+
       <div class="grid md:grid-cols-4 grid-cols-1 gap-8">
         <template v-if="rentalItems.data.length > 0">
           <div
@@ -346,8 +356,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { Head } from "@inertiajs/vue3";
-import { Link, useForm, router } from "@inertiajs/vue3";
+import { Head, Link, useForm, router } from "@inertiajs/vue3";
 import Header from "@/Components/custom/Header.vue";
 import Footer from "@/Components/custom/Footer.vue";
 import Banner from "@/Components/Banner.vue";
@@ -355,6 +364,7 @@ import RentalItemCreateModel from "@/Components/custom/RentalItemCreateModel.vue
 import RentalItemUpdateModel from "@/Components/custom/RentalItemUpdateModel.vue";
 import RentalItemViewModel from "@/Components/custom/RentalItemViewModel.vue";
 import { HasRole } from "@/Utils/Permissions";
+import { debounce } from "lodash";
 import {
   Dialog,
   DialogPanel,
@@ -377,7 +387,18 @@ const props = defineProps({
   categories: Array,
   colors: Array,
   suppliers: Array,
+  search: String,
 });
+
+const search = ref(props.search || "");
+
+const performSearch = debounce(() => {
+  router.get(
+    route("rental-items.index"),
+    { search: search.value },
+    { preserveState: true, preserveScroll: true }
+  );
+}, 500);
 
 const openEditModal = (item) => {
   selectedItem.value = item;
@@ -392,15 +413,7 @@ const openViewModal = (item) => {
 const handleSuccess = (message) => {
   successMessage.value = message;
   isSuccessModalOpen.value = true;
-  
-  // Use a small delay to ensure form submission completes before reloading
-  setTimeout(() => {
-    router.reload({
-      only: ["rentalItems"],
-      preserveScroll: true,
-      preserveState: false,
-    });
-  }, 500);
+  router.reload({ only: ["rentalItems"], preserveScroll: true });
 };
 
 const openDeleteModal = (item) => {
@@ -423,9 +436,12 @@ const deleteRentalItem = () => {
 
 const navigateTo = (url) => {
   if (!url) return;
-  router.visit(url, {
-    preserveState: true,
-    preserveScroll: true,
-  });
+  const urlParams = new URLSearchParams(new URL(url, window.location.origin).search);
+  const page = urlParams.get("page");
+  router.get(
+    route("rental-items.index"),
+    { page, search: search.value },
+    { preserveState: true, preserveScroll: true }
+  );
 };
 </script>
