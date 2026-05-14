@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Schema;
 
 class RentalItemController extends Controller
 {
@@ -29,8 +30,7 @@ class RentalItemController extends Controller
         $rentalItems = RentalItem::with('category', 'color', 'supplier')
             ->when($search, fn($q) => $q->where('item_name', 'like', "%{$search}%"))
             ->orderBy('created_at', 'desc')
-            ->paginate(8)
-            ->withQueryString();
+            ->paginate(8);
 
         $categories = Category::with('parent')->get();
 
@@ -90,6 +90,14 @@ class RentalItemController extends Controller
             // Calculate commission amounts
             $rentPrice = $validated['rent_price'];
 
+            $hasCommissionTypeColumns = Schema::hasColumn('rental_items', 'commission_type_shop')
+                && Schema::hasColumn('rental_items', 'commission_type_supplier');
+
+            if (!$hasCommissionTypeColumns) {
+                $validated['commission_type_shop'] = $validated['commission_type_shop'] ?? 'fixed';
+                $validated['commission_type_supplier'] = $validated['commission_type_supplier'] ?? 'fixed';
+            }
+
             $validated['commission_amount_shop'] = $validated['commission_type_shop'] === 'percentage'
                 ? round($rentPrice * ($validated['commission_percentage_shop'] ?? 0) / 100, 2)
                 : round($validated['commission_percentage_shop'] ?? 0, 2);
@@ -107,6 +115,17 @@ class RentalItemController extends Controller
             }
 
             $validated['total_quantity'] = $validated['rental_quantity'];
+
+            if (!Schema::hasColumn('rental_items', 'total_quantity')) {
+                unset($validated['total_quantity']);
+            }
+
+            if (!$hasCommissionTypeColumns) {
+                unset(
+                    $validated['commission_type_shop'], 
+                    $validated['commission_type_supplier']
+                );
+            }
 
             // Create with retry in case a rare unique-barcode collision happens under concurrent requests.
             $rentalItem = null;
@@ -200,6 +219,14 @@ class RentalItemController extends Controller
             // Calculate commission amounts
             $rentPrice = $validated['rent_price'];
 
+            $hasCommissionTypeColumns = Schema::hasColumn('rental_items', 'commission_type_shop')
+                && Schema::hasColumn('rental_items', 'commission_type_supplier');
+
+            if (!$hasCommissionTypeColumns) {
+                $validated['commission_type_shop'] = $validated['commission_type_shop'] ?? 'fixed';
+                $validated['commission_type_supplier'] = $validated['commission_type_supplier'] ?? 'fixed';
+            }
+
             $validated['commission_amount_shop'] = $validated['commission_type_shop'] === 'percentage'
                 ? round($rentPrice * ($validated['commission_percentage_shop'] ?? 0) / 100, 2)
                 : round($validated['commission_percentage_shop'] ?? 0, 2);
@@ -209,6 +236,17 @@ class RentalItemController extends Controller
                 : round($validated['commission_percentage_supplier'] ?? 0, 2);
 
             $validated['total_quantity'] = $validated['rental_quantity'];
+
+            if (!Schema::hasColumn('rental_items', 'total_quantity')) {
+                unset($validated['total_quantity']);
+            }
+
+            if (!$hasCommissionTypeColumns) {
+                unset(
+                    $validated['commission_type_shop'], 
+                    $validated['commission_type_supplier']
+                );
+            }
 
             // Handle image upload
             if ($request->hasFile('image')) {

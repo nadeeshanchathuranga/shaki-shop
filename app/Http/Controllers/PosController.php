@@ -508,7 +508,11 @@ class PosController extends Controller
                     })
                     ->sum('quantity');
 
-                $availableForDates = $rentalItem->total_quantity - $overlappingBookingQty - $overlappingRentalQty;
+                $availableQuantity = $rentalItem->total_quantity ?? $rentalItem->rental_quantity;
+                if ($availableQuantity === null) {
+                    $availableQuantity = $rentalItem->rental_quantity;
+                }
+                $availableForDates = $availableQuantity - $overlappingBookingQty - $overlappingRentalQty;
 
                 if ($availableForDates < $item['quantity']) {
                     DB::rollBack();

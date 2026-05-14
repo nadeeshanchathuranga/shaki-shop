@@ -413,7 +413,12 @@ const openViewModal = (item) => {
 const handleSuccess = (message) => {
   successMessage.value = message;
   isSuccessModalOpen.value = true;
-  router.reload({ preserveScroll: false });
+  search.value = "";
+  router.visit(
+    route("rental-items.index"),
+    { search: "" },
+    { preserveState: false, preserveScroll: false, replace: true }
+  );
 };
 
 const openDeleteModal = (item) => {

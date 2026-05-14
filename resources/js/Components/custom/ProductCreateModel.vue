@@ -97,7 +97,9 @@
                               ? "Add Size"
                               : dialogType === "color"
                               ? "Add Color"
-                              : "Add Category"
+                                : dialogType === "supplier"
+                                ? "Add Supplier"
+                                : "Add Category"
                           }}
                         </DialogTitle>
 
