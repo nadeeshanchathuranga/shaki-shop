@@ -7,8 +7,10 @@ use App\Models\SaleItem;
 use App\Models\Supplier;
 use App\Models\SupplierCommissionPayment;
 use App\Models\SupplierProductPurchase;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -275,19 +277,31 @@ class SupplierController extends Controller
             })
             ->values();
 
-        $productPurchaseRows = SupplierProductPurchase::query()
-            ->where('supplier_id', $supplierId)
-            ->orderByDesc('created_at')
+        $productSaleRows = SaleItem::query()
+            ->select([
+                'sale_items.id',
+                'sales.created_at',
+                'products.name as product_name',
+                'sale_items.quantity',
+                'products.cost_price'
+            ])
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->join('products', 'products.id', '=', 'sale_items.product_id')
+            ->where('products.supplier_id', $supplierId)
+            ->whereNotNull('sale_items.product_id')
+            ->orderByDesc('sales.created_at')
             ->get()
-            ->map(function ($purchase) {
+            ->map(function ($sold) {
+                $qty = (int) $sold->quantity;
+                $cost = (float) $sold->cost_price;
                 return [
-                    'id' => 'purchase-' . $purchase->id,
-                    'date' => optional($purchase->created_at)->format('Y-m-d H:i:s'),
-                    'product_name' => $purchase->product_name,
-                    'quantity' => (int) $purchase->quantity,
-                    'cost_price' => (float) $purchase->cost_price,
-                    'total_amount' => (float) $purchase->total_amount,
-                    'notes' => $purchase->notes,
+                    'id' => 'sale-prod-' . $sold->id,
+                    'date' => optional($sold->created_at)->format('Y-m-d H:i:s'),
+                    'product_name' => $sold->product_name,
+                    'quantity' => $qty,
+                    'cost_price' => $cost,
+                    'total_amount' => round($qty * $cost, 2),
+                    'notes' => 'Product Sold',
                 ];
             })
             ->values();
@@ -311,22 +325,32 @@ class SupplierController extends Controller
         $totalRentAmount = (float) $commissionRows->sum('total_price');
         $totalSupplierCommission = (float) $commissionRows->sum('supplier_commission');
         $totalShopCommission = (float) $commissionRows->sum('shop_commission');
-        $totalProductPurchases = (float) $productPurchaseRows->sum('total_amount');
-        $totalOwed = $totalSupplierCommission + $totalProductPurchases;
+        
+        $totalProductSales = (float) $productSaleRows->sum('total_amount');
+        
+        // Calculation: To Be Paid = (Sum of Cost Prices of 'Sold' products) + (Total Earned Commissions)
+        // Rented products don't have cost price in rental_items anymore, so commission handles rentals.
+        $totalOwed = $totalSupplierCommission + $totalProductSales;
         $totalPaid = (float) $paymentRows->sum('amount');
+        
+        // Total Outstanding: Total Inventory Debt = currently stocked products * cost_price
+        $totalInventoryDebt = (float) Product::query()
+            ->where('supplier_id', $supplierId)
+            ->sum(DB::raw('stock_quantity * cost_price'));
 
         return [
             'commissionRows' => $commissionRows,
-            'productPurchaseRows' => $productPurchaseRows,
+            'productPurchaseRows' => $productSaleRows, // Sending sold items to the view
             'paymentRows' => $paymentRows,
             'totals' => [
                 'total_rent_amount' => round($totalRentAmount, 2),
                 'total_supplier_commission' => round($totalSupplierCommission, 2),
                 'total_shop_commission' => round($totalShopCommission, 2),
-                'total_product_purchases' => round($totalProductPurchases, 2),
+                'total_product_sales' => round($totalProductSales, 2),
                 'total_owed' => round($totalOwed, 2),
                 'total_paid' => round($totalPaid, 2),
                 'outstanding_amount' => round(max($totalOwed - $totalPaid, 0), 2),
+                'total_inventory_debt' => round($totalInventoryDebt, 2),
             ],
         ];
     }
