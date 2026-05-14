@@ -19,19 +19,26 @@
           </div>
         </div>
 
-        <div class="text-sm text-gray-700">
-          Outstanding: <span class="font-bold text-red-600">{{ formatCurrency(totals.outstanding_amount) }} LKR</span>
+        <div class="flex flex-col text-sm text-gray-700 text-right space-y-1">
+          <div>
+            Total Inventory Debt (Outstanding): 
+            <span class="font-bold text-gray-900">{{ formatCurrency(totals.total_inventory_debt) }} LKR</span>
+          </div>
+          <div>
+            To Be Paid (Dynamic): 
+            <span class="font-bold text-red-600">{{ formatCurrency(totals.outstanding_amount) }} LKR</span>
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div class="bg-white rounded-xl p-4 shadow border border-gray-200">
           <p class="text-xs uppercase text-gray-500">Rental Commission</p>
           <p class="text-lg font-bold text-sky-700">{{ formatCurrency(totals.total_supplier_commission) }}</p>
         </div>
         <div class="bg-white rounded-xl p-4 shadow border border-gray-200">
-          <p class="text-xs uppercase text-gray-500">Product Purchases</p>
-          <p class="text-lg font-bold text-orange-600">{{ formatCurrency(totals.total_product_purchases) }}</p>
+          <p class="text-xs uppercase text-gray-500">Product Sales (Sold)</p>
+          <p class="text-lg font-bold text-orange-600">{{ formatCurrency(totals.total_product_sales) }}</p>
         </div>
         <div class="bg-white rounded-xl p-4 shadow border border-gray-200">
           <p class="text-xs uppercase text-gray-500">Total Owed</p>
@@ -40,6 +47,43 @@
         <div class="bg-white rounded-xl p-4 shadow border border-gray-200">
           <p class="text-xs uppercase text-gray-500">To Be Paid</p>
           <p class="text-lg font-bold text-red-700">{{ formatCurrency(totals.outstanding_amount) }}</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 shadow border border-gray-200">
+          <p class="text-xs uppercase text-gray-500">Total Paid</p>
+          <p class="text-lg font-bold text-green-700">{{ formatCurrency(totals.total_paid) }}</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-6 shadow border border-gray-200 space-y-4">
+        <div class="flex justify-between items-center">
+          <p class="text-lg font-bold text-black">Payment Details Summary</p>
+          <p class="text-md font-bold text-gray-700">Total Sum: <span class="text-indigo-700">{{ formatCurrency(totals.total_paid) }} LKR</span></p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border border-gray-200">
+            <thead class="bg-gray-900 text-white">
+              <tr>
+                <th class="p-3 text-left">Date</th>
+                <th class="p-3 text-right">Amount</th>
+                <th class="p-3 text-right">Remaining Payment</th>
+                <th class="p-3 text-left">Paid By</th>
+                <th class="p-3 text-left">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in paymentRowsWithRemaining" :key="row.id" class="border-t border-gray-200">
+                <td class="p-3">{{ row.date }}</td>
+                <td class="p-3 text-right font-semibold text-indigo-700">{{ formatCurrency(row.amount) }}</td>
+                <td class="p-3 text-right font-semibold text-red-700">{{ formatCurrency(row.remaining_payment) }}</td>
+                <td class="p-3">{{ row.paid_by || '-' }}</td>
+                <td class="p-3">{{ row.notes || '-' }}</td>
+              </tr>
+              <tr v-if="paymentRows.length === 0">
+                <td colspan="5" class="p-4 text-center text-gray-500">No supplier payments yet.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -76,43 +120,13 @@
             class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold disabled:opacity-50"
             :disabled="paymentForm.processing || Number(totals.outstanding_amount) <= 0"
           >
-            Pay Commission
+            Pay
           </button>
         </form>
       </div>
 
       <div class="bg-white rounded-xl p-6 shadow border border-gray-200 space-y-4">
-        <p class="text-lg font-bold text-black">Payment History</p>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm border border-gray-200">
-            <thead class="bg-gray-900 text-white">
-              <tr>
-                <th class="p-3 text-left">Date</th>
-                <th class="p-3 text-right">Amount</th>
-                <th class="p-3 text-right">Remaining Payment</th>
-                <th class="p-3 text-left">Paid By</th>
-                <th class="p-3 text-left">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in paymentRowsWithRemaining" :key="row.id" class="border-t border-gray-200">
-                <td class="p-3">{{ row.date }}</td>
-                <td class="p-3 text-right font-semibold text-indigo-700">{{ formatCurrency(row.amount) }}</td>
-                <td class="p-3 text-right font-semibold text-red-700">{{ formatCurrency(row.remaining_payment) }}</td>
-                <td class="p-3">{{ row.paid_by || '-' }}</td>
-                <td class="p-3">{{ row.notes || '-' }}</td>
-              </tr>
-              <tr v-if="paymentRows.length === 0">
-                <td colspan="5" class="p-4 text-center text-gray-500">No supplier payments yet.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-6 shadow border border-gray-200 space-y-4">
-        <p class="text-lg font-bold text-black">Product Purchase Records</p>
+        <p class="text-lg font-bold text-black">Table Breakdown: Products Sold</p>
 
         <div class="overflow-x-auto">
           <table class="w-full text-sm border border-gray-200">
@@ -120,23 +134,23 @@
               <tr>
                 <th class="p-3 text-left">Date</th>
                 <th class="p-3 text-left">Product</th>
+                <th class="p-3 text-left">Transaction Type</th>
                 <th class="p-3 text-right">Qty</th>
                 <th class="p-3 text-right">Cost Price</th>
-                <th class="p-3 text-right">Total Cost</th>
-                <th class="p-3 text-left">Notes</th>
+                <th class="p-3 text-right">Total Owed</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in safePurchaseRows" :key="row.id" class="border-t border-gray-200">
                 <td class="p-3">{{ row.date }}</td>
                 <td class="p-3">{{ row.product_name }}</td>
+                <td class="p-3">Sale</td>
                 <td class="p-3 text-right">{{ row.quantity }}</td>
                 <td class="p-3 text-right">{{ formatCurrency(row.cost_price) }}</td>
                 <td class="p-3 text-right font-semibold text-orange-600">{{ formatCurrency(row.total_amount) }}</td>
-                <td class="p-3">{{ row.notes || '-' }}</td>
               </tr>
               <tr v-if="safePurchaseRows.length === 0">
-                <td colspan="6" class="p-4 text-center text-gray-500">No product purchase records found for this supplier.</td>
+                <td colspan="6" class="p-4 text-center text-gray-500">No sold product records found for this supplier.</td>
               </tr>
             </tbody>
           </table>
@@ -152,11 +166,12 @@
               <tr>
                 <th class="p-3 text-left">Date</th>
                 <th class="p-3 text-left">Order</th>
-                <th class="p-3 text-left">Item</th>
+                <th class="p-3 text-left">Item Name</th>
+                <th class="p-3 text-left">Transaction Type</th>
                 <th class="p-3 text-right">Qty</th>
-                <th class="p-3 text-right">Rent</th>
-                <th class="p-3 text-right">Total Rent</th>
-                <th class="p-3 text-right">Supplier Comm.</th>
+                <th class="p-3 text-right">Rent Price</th>
+                <th class="p-3 text-right">Total Rent Price</th>
+                <th class="p-3 text-right">Commission to Pay</th>
                 
               </tr>
             </thead>
@@ -165,6 +180,7 @@
                 <td class="p-3">{{ row.date }}</td>
                 <td class="p-3">{{ row.order_id || '-' }}</td>
                 <td class="p-3">{{ row.item_name || 'Rental Item' }}</td>
+                <td class="p-3">Rent</td>
                 <td class="p-3 text-right">{{ row.quantity }}</td>
                 <td class="p-3 text-right">{{ formatCurrency(row.unit_price) }}</td>
                 <td class="p-3 text-right">{{ formatCurrency(row.total_price) }}</td>
@@ -172,7 +188,7 @@
                 
               </tr>
               <tr v-if="commissionRows.length === 0">
-                <td colspan="8" class="p-4 text-center text-gray-500">No rental commission records found for this supplier.</td>
+                <td colspan="8" class="p-4 text-center text-gray-500">No rental records found for this supplier.</td>
               </tr>
             </tbody>
           </table>
@@ -187,8 +203,8 @@
 </template>
 
 <script setup>
-import { useForm, Link, Head } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { useForm, Link, Head, router } from '@inertiajs/vue3';
+import { computed, onMounted, onUnmounted } from 'vue';
 import Header from '@/Components/custom/Header.vue';
 import Footer from '@/Components/custom/Footer.vue';
 import Banner from '@/Components/Banner.vue';
@@ -219,6 +235,25 @@ const props = defineProps({
 const paymentForm = useForm({
   amount: '',
   notes: '',
+});
+
+let refreshInterval = null;
+
+onMounted(() => {
+  // Poll every 5 seconds to keep the data in real-time sync with POS terminals
+  refreshInterval = setInterval(() => {
+    router.reload({
+      only: ['commissionRows', 'productPurchaseRows', 'paymentRows', 'totals'],
+      preserveScroll: true,
+      preserveState: true,
+    });
+  }, 5000);
+});
+
+onUnmounted(() => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+  }
 });
 
 const formatCurrency = (value) => {
