@@ -111,6 +111,26 @@
         </div>
       </Link>
 
+      <Link href="/calendar" v-if="HasRole(['Admin', 'Manager'])">
+        <div class="dashboard-card bg-[#3B82F6]">
+          <div class="card-content">
+            <div class="icon-container">
+              <img
+                src="/images/dashboard/history.png"
+                class="icon"
+                alt="Operational Calendar"
+              />
+            </div>
+            <div class="text-container">
+              <p class="title">Calendar</p>
+              <p class="description">
+                Manage daily schedules, track event bookings, and organize rental dispatches visually.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Link>
+
       <Link href="/customers" v-if="HasRole(['Admin', 'Manager'])">
         <div class="dashboard-card bg-[#CB9DF0]">
           <div class="card-content">
