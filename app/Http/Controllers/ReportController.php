@@ -100,7 +100,7 @@ class ReportController extends Controller
         $sales = $salesQuery->orderBy('created_at', 'desc')->get();
         $expenses = $expensesQuery->orderBy('date', 'desc')->get();
 
-        // -------- Event Commissions (filter by event date) --------
+        // -------- Event Commissions (Maintenance View - Filtered by Event Date) --------
         $commissionsQuery = EventCommission::query();
         if ($from && $to) {
             $commissionsQuery->whereBetween('event_date', [$from->toDateString(), $to->toDateString()]);
@@ -110,6 +110,17 @@ class ReportController extends Controller
             $commissionsQuery->where('event_date', '<=', $to->toDateString());
         }
         $commissions = $commissionsQuery->orderBy('event_date', 'desc')->get();
+
+        // -------- Commission Payments (Financial View - Filtered by Transaction Date) --------
+        $paymentsQuery = \App\Models\EventCommissionPayment::query();
+        if ($from && $to) {
+            $paymentsQuery->whereBetween('payment_date', [$from->toDateString(), $to->toDateString()]);
+        } elseif ($from) {
+            $paymentsQuery->where('payment_date', '>=', $from->toDateString());
+        } elseif ($to) {
+            $paymentsQuery->where('payment_date', '<=', $to->toDateString());
+        }
+        $dailyPayments = $paymentsQuery->get();
 
         // Helpers
         $customDiscountToLkr = function ($sale) {
@@ -152,14 +163,18 @@ class ReportController extends Controller
         // Overall stats
         $totalSaleAmount = (float) $sales->sum('total_amount');
         $totalCost = (float) $sales->sum('total_cost');
+        
+        // Integrate Commission Revenue (Collected Cash on specific dates)
+        $totalCommissionEarned = (float) $dailyPayments->sum('amount');
+        $totalSaleAmount += $totalCommissionEarned; // Commissions are direct sales revenue
+
         $totalProductDiscountLkr = (float) $sales->sum('discount');
         $totalCustomDiscountLkr = (float) $sales->reduce(fn($c, $s) => $c + $customDiscountToLkr($s), 0.0);
-        $netProfit = $totalSaleAmount - $totalCost - ($totalProductDiscountLkr + $totalCustomDiscountLkr);
-        $totalExpenseAmount = (float) $expenses->sum('amount');
         
-        // Add Commission Earned to Profit
-        $totalCommissionEarned = (float) $commissions->sum('commission_amount');
-        $netProfit = $netProfit + $totalCommissionEarned;
+        // Profits include the pure commission income
+        $netProfit = $totalSaleAmount - $totalCost - ($totalProductDiscountLkr + $totalCustomDiscountLkr);
+        
+        $totalExpenseAmount = (float) $expenses->sum('amount');
         
         $netProfitAfterExpenses = $netProfit - $totalExpenseAmount;
         $totalTransactions = $sales->count();

@@ -112,17 +112,17 @@
 <div class="grid w-full xl:grid-cols-8 md:grid-cols-4 grid-cols-2 gap-4 mb-4 items-stretch">
   <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#EC6116] w-full rounded-2xl bg-[#EC611666] shadow-lg hover:-translate-y-1 transition">
     <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Total Sales Amount</h2>
-    <p class="text-2xl font-bold text-black">{{ salesGrossTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) }} LKR</p>
+    <p class="text-2xl font-bold text-black">{{ toMoney(totalSaleAmount) }} LKR</p>
   </div>
 
   <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#488D3F] w-full rounded-2xl bg-[#488D3F66] shadow-lg hover:-translate-y-1 transition">
     <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Net Profit</h2>
-    <p class="text-2xl font-bold text-black">{{ toMoney(salesProfitTotal) }} LKR</p>
+    <p class="text-2xl font-bold text-black">{{ toMoney(netProfit) }} LKR</p>
   </div>
 
   <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#16D0EC] w-full rounded-2xl bg-[#16D0EC66] shadow-lg hover:-translate-y-1 transition">
     <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Total Discount</h2>
-    <p class="text-2xl font-bold text-black">{{ toMoney(salesDiscountTotal) }} LKR</p>
+    <p class="text-2xl font-bold text-black">{{ toMoney(totalDiscountLkr + totalCustomDiscountLkr) }} LKR</p>
   </div>
 
   <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#FF9F1C] w-full rounded-2xl bg-[#FF9F1C66] shadow-lg hover:-translate-y-1 transition">

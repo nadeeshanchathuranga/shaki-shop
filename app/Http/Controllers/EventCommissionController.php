@@ -44,6 +44,16 @@ class EventCommissionController extends Controller
 
         $commission = EventCommission::create($validated);
 
+        // Log the initial payment transaction for daily reports
+        if ($commission->advance_amount > 0) {
+            \App\Models\EventCommissionPayment::create([
+                'event_commission_id' => $commission->id,
+                'amount' => $commission->advance_amount,
+                'payment_date' => now()->toDateString(),
+                'notes' => 'Initial Advance Payment'
+            ]);
+        }
+
         return response()->json(['success' => true, 'data' => $commission]);
     }
 
@@ -75,7 +85,19 @@ class EventCommissionController extends Controller
             $validated['customer_id'] = $customer->id;
         }
 
+        $oldAdvance = (float) $eventCommission->advance_amount;
         $eventCommission->update($validated);
+        $newAdvance = (float) $eventCommission->advance_amount;
+
+        // Log the incremental payment for reporting if advance was increased
+        if ($newAdvance > $oldAdvance) {
+            \App\Models\EventCommissionPayment::create([
+                'event_commission_id' => $eventCommission->id,
+                'amount' => $newAdvance - $oldAdvance,
+                'payment_date' => now()->toDateString(),
+                'notes' => 'Subsequent Payment / Settlement'
+            ]);
+        }
 
         return response()->json(['success' => true, 'data' => $eventCommission]);
     }
