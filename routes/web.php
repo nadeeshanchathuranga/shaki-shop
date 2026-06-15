@@ -14,6 +14,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\SizeController;
 
 use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\CalendarController;
 
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\StockTransactionController;
@@ -133,6 +134,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('expenses', ExpenseController::class);
     Route::resource('event-commissions', EventCommissionController::class);
+    Route::resource('calendar', CalendarController::class);
+    Route::patch('/calendar/{id}/status', [CalendarController::class, 'updateStatus'])->name('calendar.status');
 
     Route::post('/api/products', [ProductController::class, 'fetchProducts']);
     Route::post('/api/sale/items', [ReturnItemController::class, 'fetchSaleItems'])->name('sale.items');
