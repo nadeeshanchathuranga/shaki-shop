@@ -91,6 +91,26 @@
         </div>
       </Link>
 
+      <Link href="/event-commissions" v-if="HasRole(['Admin', 'Manager'])">
+        <div class="dashboard-card bg-[#8B5CF6]">
+          <div class="card-content">
+            <div class="icon-container">
+              <img
+                src="/images/dashboard/commission.png"
+                class="icon"
+                alt="Commission Management"
+              />
+            </div>
+            <div class="text-container">
+              <p class="title">Commission Management</p>
+              <p class="description">
+                Track event-based commissions, manage upfront deposits, and log payment status updates.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Link>
+
       <Link href="/customers" v-if="HasRole(['Admin', 'Manager'])">
         <div class="dashboard-card bg-[#CB9DF0]">
           <div class="card-content">

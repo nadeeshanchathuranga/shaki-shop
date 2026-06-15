@@ -21,6 +21,7 @@ use App\Http\Controllers\TransactionHistoryController;
 use App\Http\Controllers\ManualPosController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\RentalItemController;
+use App\Http\Controllers\EventCommissionController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -96,7 +97,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('coupons', CouponController::class);
     Route::resource('sizes', SizeController::class);
     Route::resource('employees', EmployeeController::class);
-    Route::resource('transactionHistory', TransactionHistoryController::class );
+    Route::resource('transactionHistory', TransactionHistoryController::class);
     Route::post('/transactions/delete', [TransactionHistoryController::class, 'destroy'])->name('transactions.delete');
     Route::resource('stock-transition', StockTransactionController::class);
     Route::resource('manualpos', ManualPosController::class);
@@ -119,19 +120,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
 
- Route::get('/add_promotion', [ProductController::class, 'addPromotion']);
+    Route::get('/add_promotion', [ProductController::class, 'addPromotion']);
     Route::post('/submit_promotion', [ProductController::class, 'submitPromotion']);
     Route::get('/products/{id}/promotion-items', [ProductController::class, 'getPromotionItems']);
 
 
     // Route::get('/stock-transition', [PosController::class, 'index'])->name('pos.index');
     // Route::post('/stock-transition', [PosController::class, 'getProduct'])->name('pos.getProduct');
-  Route::post('/api/products2', [ProductController::class, 'fetchProducts2']);
+    Route::post('/api/products2', [ProductController::class, 'fetchProducts2']);
 
     Route::resource('return-bill', ReturnItemController::class);
 
     Route::resource('expenses', ExpenseController::class);
-
+    Route::resource('event-commissions', EventCommissionController::class);
 
     Route::post('/api/products', [ProductController::class, 'fetchProducts']);
     Route::post('/api/sale/items', [ReturnItemController::class, 'fetchSaleItems'])->name('sale.items');

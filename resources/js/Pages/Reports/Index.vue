@@ -148,6 +148,11 @@
   </div>
 
   <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#EC16D7] w-full rounded-2xl bg-[#EC16D766] shadow-lg hover:-translate-y-1 transition">
+    <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Commission Earned</h2>
+    <p class="text-2xl font-bold text-black">{{ toMoney(totalCommissionEarned) }} LKR</p>
+  </div>
+
+  <div class="h-full min-h-[140px] p-4 flex flex-col justify-center items-center gap-3 text-center border-2 border-[#10b981] w-full rounded-2xl bg-[#10b98166] shadow-lg hover:-translate-y-1 transition">
     <h2 class="text-xl font-extrabold tracking-wide text-black uppercase leading-tight">Total Number of Customers</h2>
     <p class="text-2xl font-bold text-black">{{ totalCustomer }}</p>
   </div>
@@ -490,6 +495,60 @@
       </div>
     </div>
 
+    <!-- Event Commissions Table -->
+    <div class="w-full bg-white border-4 border-black rounded-xl p-6">
+      <h2 class="text-2xl font-semibold text-slate-700 text-center pb-4">Event Commissions Table</h2>
+
+      <div class="flex justify-between items-center pb-4">
+        <div class="py-2 px-4 border-2 border-emerald-600 rounded-xl bg-emerald-100 shadow-sm text-center">
+          <p class="text-sm font-extrabold text-black uppercase">
+            Total Commission Earned:
+            <span class="text-base font-bold">{{ toMoney(totalCommissionEarned) }} LKR</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto overflow-y-auto max-h-[420px] border rounded-xl mt-2">
+        <table class="w-full text-gray-800 bg-white border border-gray-300 rounded-lg shadow-md table-auto">
+          <thead class="sticky top-0 z-10">
+            <tr class="bg-gray-800 text-white font-bold uppercase text-[12px] tracking-wider">
+              <th class="p-3 text-left">#</th>
+              <th class="p-3 text-left">Event Date</th>
+              <th class="p-3 text-left">Event Title</th>
+              <th class="p-3 text-right">Total Amount</th>
+              <th class="p-3 text-right">Advance Paid</th>
+              <th class="p-3 text-right text-rose-300">Due Amount</th>
+              <th class="p-3 text-center">Status</th>
+            </tr>
+          </thead>
+            <tbody class="text-[13px]">
+              <tr v-for="(c, i) in commissions" :key="c.id ?? i" class="border-b transition duration-200 hover:bg-gray-100">
+                <td class="p-3">{{ i + 1 }}</td>
+                <td class="p-3 whitespace-nowrap">{{ formatDate(c.event_date) }}</td>
+                <td class="p-3 font-bold">{{ c.event_title }}</td>
+                <td class="p-3 text-right">{{ toMoney(c.total_amount) }}</td>
+                <td class="p-3 text-right font-bold text-amber-600">{{ toMoney(c.advance_amount) }}</td>
+                <td class="p-3 text-right font-black text-rose-600">
+                    {{ toMoney(Number(c.total_amount) - Number(c.advance_amount)) }}
+                </td>
+                <td class="p-3 text-center uppercase font-bold">{{ c.payment_status.replace('_', ' ') }}</td>
+              </tr>
+            <tr v-if="commissions.length === 0">
+              <td colspan="7" class="p-8 text-center text-gray-500 italic">No commissions in this period</td>
+            </tr>
+          </tbody>
+
+          <tfoot class="bg-gray-50 text-[12px] font-semibold">
+            <tr>
+              <td class="p-3 text-right" colspan="4">Totals:</td>
+              <td class="p-3 text-right">{{ toMoney(totalCommissionEarned) }}</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
 
 
 
@@ -537,6 +596,8 @@ const props = defineProps({
 
   totalCustomer: { type: Number, required: true },
   totalBankFee: { type: Number, required: true },
+  totalCommissionEarned: { type: Number, required: true },
+  commissions: { type: Array, required: true },
   startDate: { type: String, default: "" },
   endDate: { type: String, default: "" },
   categorySales: { type: Object, required: true },

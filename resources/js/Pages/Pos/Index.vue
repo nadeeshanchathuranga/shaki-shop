@@ -72,31 +72,37 @@
                 </div>
                 <div class="flex md:w-1/2 w-full p-8 border-4 border-black rounded-3xl">
                     <div class="flex flex-col items-start justify-center w-full md:px-12 px-4">
-                        <div class="flex flex-col w-full gap-3">
-                            <h2 class="md:text-3xl text-2xl font-bold text-black">Billing Details</h2>
-                            <div class="flex items-center gap-2">
+                        <div class="flex flex-col w-full gap-4">
+                            <h2 class="md:text-3xl text-2xl font-bold text-black border-b-2 border-black pb-2">Operations</h2>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                               <!-- User Manual Button -->
                               <button @click="isSelectModalOpen = true"
-                                  class="flex items-center px-4 py-2.5 text-base font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm whitespace-nowrap">
+                                  class="flex items-center justify-center px-3 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-md whitespace-nowrap">
                                   <i class="ri-book-open-line mr-1.5 text-lg"></i> User Manual
                               </button>
 
                               <!-- Rental Items Button -->
                               <button @click="isSelectRentalItemModalOpen = true"
-                                  class="flex items-center px-4 py-2.5 text-base font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition shadow-sm whitespace-nowrap">
+                                  class="flex items-center justify-center px-3 py-2.5 text-sm font-bold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition shadow-md whitespace-nowrap">
                                   <i class="ri-shopping-bag-3-line mr-1.5 text-lg"></i> Rental Items
                               </button>
 
                               <!-- Return Rental Button -->
                               <button @click="isReturnRentalModalOpen = true"
-                                  class="flex items-center px-4 py-2.5 text-base font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition shadow-sm whitespace-nowrap">
+                                  class="flex items-center justify-center px-3 py-2.5 text-sm font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition shadow-md whitespace-nowrap">
                                   <i class="ri-arrow-go-back-line mr-1.5 text-lg"></i> Return Rental
                               </button>
 
                               <!-- Booked Items Button -->
                               <button @click="isBookedItemsModalOpen = true"
-                                  class="flex items-center px-4 py-2.5 text-base font-bold text-white bg-sky-500 rounded-lg hover:bg-sky-600 transition shadow-sm whitespace-nowrap">
+                                  class="flex items-center justify-center px-3 py-2.5 text-sm font-bold text-white bg-sky-500 rounded-lg hover:bg-sky-600 transition shadow-md whitespace-nowrap">
                                   <i class="ri-calendar-check-line mr-1.5 text-lg"></i> Booked Items
+                              </button>
+
+                              <!-- Commission Button -->
+                              <button @click="isCommissionModalOpen = true"
+                                  class="flex items-center justify-center px-3 py-2.5 text-sm font-bold text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition shadow-md whitespace-nowrap">
+                                  <i class="ri-money-dollar-circle-line mr-1.5 text-lg"></i> Commission
                               </button>
                             </div>
                         </div>
@@ -524,6 +530,8 @@
 
     <BookedItemsModel v-model:open="isBookedItemsModalOpen"
         @import-booked-item="handleImportBookedItem" />
+
+    <EventCommissionModal v-model:open="isCommissionModalOpen" :customerData="customer" @success="refreshData" />
     <Footer />
 </template>
 <script setup>
@@ -542,6 +550,7 @@ import SelectProductModel from "@/Components/custom/SelectProductModel.vue";
 import SelectRentalItemModel from "@/Components/custom/SelectRentalItemModel.vue";
 import ReturnRentalModel from "@/Components/custom/ReturnRentalModel.vue";
 import BookedItemsModel from "@/Components/custom/BookedItemsModel.vue";
+import EventCommissionModal from "@/Components/custom/EventCommissionModal.vue";
 import ProductAutoComplete from "@/Components/custom/ProductAutoComplete.vue";
 import { generateOrderId } from "@/Utils/Other.js";
 
@@ -558,6 +567,7 @@ const isSelectModalOpen = ref(false);
 const isSelectRentalItemModalOpen = ref(false);
 const isReturnRentalModalOpen = ref(false);
 const isBookedItemsModalOpen = ref(false);
+const isCommissionModalOpen = ref(false);
 const custom_discount_type = ref('fixed');
 const rentalDateFrom = ref('');
 const rentalDateTo = ref('');
